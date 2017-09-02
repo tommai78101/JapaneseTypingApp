@@ -1,8 +1,9 @@
 #include "game.h"
 
 Game::Game() : gameWindow(NULL), gameWindowRenderer(NULL), quitFlag(false), width(400), height(400), pixels(NULL), scale(8) {
-	this->velocityX = 0;
-	this->velocityY = 0;
+	this->position = {};
+	this->velocity = {};
+	this->currentUpOrientation = UpOrientation::NORTH;
 	this->clearColor = 0x0;
 	srand(static_cast<unsigned int>(time(NULL)));
 }
@@ -81,30 +82,37 @@ void Game::GameLoop() {
 }
 
 void Game::Update() {
-	Clear();
-
-	//Aggregate initialization. Requires the values is strictly in order of the struct's members.
-	SDL_Rect r = {
-		50, 50, 50, 50
-	};
-
-	SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 255, 255);
-	SDL_RenderDrawRect(this->gameWindowRenderer, &r);
-	SDL_RenderPresent(this->gameWindowRenderer);
+	//Updates the Cartesian position using Isometric coordinates.
+	this->position += CreateIsometricPosition(this->velocity, this->currentUpOrientation) * 0.1f;
+	this->velocity = {};
 }
 
 void Game::Render() {
+	//Clears everything.
+	SDL_SetRenderDrawColor(this->gameWindowRenderer, 255, 255, 255, 255);
 	SDL_RenderClear(this->gameWindowRenderer);
-	if (this->mainTexture) {
-		SDL_DestroyTexture(this->mainTexture);
-	}
-	this->mainTexture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
-	SDL_RenderCopy(this->gameWindowRenderer, this->mainTexture, NULL, NULL); //NULL: Use defaults.
+
+	//Aggregate initialization. Requires the values is strictly in order of the struct's members.
+	SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 255, 255);
+	SDL_Rect r = {
+		(int) std::roundf(this->position.x), (int) std::roundf(this->position.y), 50, 50
+	};
+	SDL_RenderDrawRect(this->gameWindowRenderer, &r);
+
+	////Creates a texture to blit to the screen surface (display surface).
+	//if (this->mainTexture) {
+	//	SDL_DestroyTexture(this->mainTexture);
+	//}
+	//this->mainTexture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
+	//SDL_RenderCopy(this->gameWindowRenderer, this->mainTexture, NULL, NULL); //NULL: Use defaults.
+
+	//Update the renderer.
 	SDL_RenderPresent(this->gameWindowRenderer);
 }
 
 void Game::HandleEvent() {
 	SDL_Event gameWindowEvent;
+	bool isKeyDown = false;
 	while (SDL_PollEvent(&gameWindowEvent)) {
 		switch (gameWindowEvent.type) {
 			case SDL_WINDOWEVENT: {
@@ -117,10 +125,20 @@ void Game::HandleEvent() {
 				break;
 			}
 			case SDL_KEYDOWN: {
-				this->HandleInput(gameWindowEvent.key.keysym.sym);
+				if (!gameWindowEvent.key.repeat) {
+					this->inputs[gameWindowEvent.key.keysym.scancode] = true;
+				}
+				break; 
+			}
+			case SDL_KEYUP: {
+				if (!gameWindowEvent.key.repeat) {
+					this->inputs[gameWindowEvent.key.keysym.scancode] = false;
+				}
+				break;
 			}
 		}
 	}
+	this->HandleInput();
 }
 
 void Game::QuitGame() {
@@ -171,29 +189,41 @@ uint32_t Game::GetPixel(int x, int y) {
 
 void Game::Clear() {
 	SDL_Renderer* renderer = this->GetGameRenderer();
-	int r = 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(renderer);
 	SDL_RenderPresent(renderer);
 }
 
-void Game::HandleInput(const SDL_Keycode code) {
-	switch (code) {
-		case SDLK_UP: {
-			--this->velocityY;
-			break;
+void Game::HandleInput() {
+	//This is the place to put tons of if...statements here.
+	if (this->inputs[SDL_SCANCODE_LSHIFT]) {
+		this->inputs[SDL_SCANCODE_LSHIFT] = false;
+		switch (this->currentUpOrientation) {
+			case UpOrientation::NORTHEAST: {
+				this->currentUpOrientation = UpOrientation::NORTH;
+				break;
+			}
+			default:
+			case UpOrientation::NORTH: {
+				this->currentUpOrientation = UpOrientation::NORTHWEST;
+				break;
+			}
+			case UpOrientation::NORTHWEST: {
+				this->currentUpOrientation = UpOrientation::NORTHEAST;
+				break;
+			}
 		}
-		case SDLK_DOWN: {
-			++this->velocityY;
-			break;
-		}
-		case SDLK_LEFT: {
-			--this->velocityX;
-			break;
-		}
-		case SDLK_RIGHT: {
-			++this->velocityX;
-			break;
-		}
+	}
+	if (this->inputs[SDL_SCANCODE_UP]) {
+		--this->velocity.y;
+	}
+	if (this->inputs[SDL_SCANCODE_DOWN]) {
+		++this->velocity.y;
+	}
+	if (this->inputs[SDL_SCANCODE_LEFT]) {
+		--this->velocity.x;
+	}
+	if (this->inputs[SDL_SCANCODE_RIGHT]) {
+		++this->velocity.x;
 	}
 }

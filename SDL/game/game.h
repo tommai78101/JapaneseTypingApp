@@ -7,6 +7,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
+#include <map>
 
 #ifdef _WIN32
 #	include <Windows.h>
@@ -14,31 +16,23 @@
 #	include <unistd.h>
 #endif
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-const int RED_MASK = 0xff000000;
-const int GREEN_MASK = 0x00ff0000;
-const int BLUE_MASK = 0x0000ff00;
-const int ALPHA_MASK = 0x000000ff;
-#else
-const int RED_MASK = 0x000000ff;
-const int GREEN_MASK = 0x0000ff00;
-const int BLUE_MASK = 0x00ff0000;
-const int ALPHA_MASK = 0xff000000;
-#endif
-
+#include "../game/common.h"
 #include "../game/draw.h"
 
 class Draw;
 
 class Game {
 protected:
-	int velocityX;
-	int velocityY;
-	int clearColor;
+	std::map<SDL_Scancode, bool> inputs;
+
+	Vector2D position;
+	Vector2D velocity;
+	UpOrientation currentUpOrientation;
 
 	int width;
 	int height;
 	int scale;
+	int clearColor;
 	bool quitFlag;
 	uint32_t* pixels;
 	SDL_Window* gameWindow;
@@ -56,7 +50,7 @@ public:
 	bool IsWindowInitialized() const;
 	void GameLoop();
 	void HandleEvent();
-	void HandleInput(SDL_Keycode code);
+	void HandleInput();
 	void QuitGame();
 
 	virtual void Update();
