@@ -5,6 +5,9 @@
 //In other words, Draw class handles everything that we need to access for drawing stuffs to the surface.
 //Move the SDL_Surface from game, and place it here. Move the texture to the Game.
 
+//TODO(Thompson): In Game class, have the Game class maintain a list of objects to pass to the Draw class, and update the objects individually as needed.
+//Draw class should then iterate through the list of updated objects, and render them individually.
+
 #include <SDL.h>
 
 #include "game.h"
@@ -13,21 +16,33 @@ class Game;
 
 class Draw {
 protected:
+	Game* game;
 	uint32_t* pixels;
+	float drawScale;
 	SDL_Surface* gameSurface;
+	SDL_Texture* gameTexture;
 
 public:
-	Draw(int scale);
+	Draw(Game* game, float scale);
 	~Draw();
 
 	void Update();
 	void Render();
 
-	int GetScale() const;
-	uint32_t GetPixel(int x, int y);
-	void SetPixel(int x, int y, uint32_t color);
+	float GetScale() const;
+	void SetScale(float value);
+
+	//Fetches the pixel value and stores it in the outPixel. Returns true if succeeds. False, if otherwise.
+	bool Draw::GetPixel(int x, int y, uint32_t* outPixel);
+	//Sets the pixel value in the intended position. Returns true if succeeds. False, if otherwise.
+	bool SetPixel(int x, int y, uint32_t color);
+
 	void SetSurface(SDL_Surface* surface);
 	SDL_Surface* GetSurface() const;
+
+	void SetTexture(SDL_Texture* texture);
+	SDL_Texture* GetTexture() const;
+
 	SDL_Rect* GetDestinationRect() const;
 };
 

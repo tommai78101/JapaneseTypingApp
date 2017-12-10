@@ -33,12 +33,18 @@
     <ClCompile Include="game\common.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="game\draw.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\game.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="game\common.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\draw.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
   </ItemGroup>
