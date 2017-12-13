@@ -88,6 +88,10 @@ void VectorList::Erase(size_t index) {
 	this->EraseRange(index, index + 1);
 }
 
+void VectorList::Clear() {
+	this->count = 0;
+}
+
 VectorList* CreateVectorList(size_t itemSize = 1) {
 	VectorList* self = static_cast<VectorList*>(std::malloc(sizeof(VectorList)));
 	assert(itemSize > 0);

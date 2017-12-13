@@ -29,15 +29,15 @@ protected:
 	Vector2D velocity;
 	UpOrientation currentUpOrientation;
 
-	int width;
-	int height;
-	int scale;
-	int clearColor;
+	size_t width;
+	size_t height;
+	size_t scale;
+	size_t clearColor;
 	bool quitFlag;
 	uint32_t* pixels;
 	SDL_Window* gameWindow;
 	SDL_Renderer* gameWindowRenderer;
-	SDL_Texture* mainTexture;
+	SDL_Texture* masize_texture;
 	SDL_Surface* gameSurface;
 
 	Draw* drawSystem;
@@ -57,8 +57,8 @@ public:
 	virtual void Render();
 
 	//Getter/Setters
-	int GetWidth() const;
-	int GetHeight() const;
+	size_t GetWidth() const;
+	size_t GetHeight() const;
 	SDL_Renderer* GetGameRenderer() const;
 
 	SDL_Texture* GetTexture() const;
@@ -67,8 +67,8 @@ public:
 	SDL_Surface* GetSurface() const;
 	void SetSurface(SDL_Surface* surface);
 
-	void SetPixel(int x, int y, uint32_t color);
-	uint32_t GetPixel(int x, int y);
+	void SetPixel(size_t x, size_t y, uint32_t color);
+	uint32_t GetPixel(size_t x, size_t y);
 
 	void Clear();
 };

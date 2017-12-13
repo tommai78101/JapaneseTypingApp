@@ -7,19 +7,20 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
-#include <cstring>  //For std::memmove only
+#include <cstring>  //For std::memmove, std::memcpy only
 
+//For anything using size_t, use size_t.
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-const int RED_MASK = 0xff000000;
-const int GREEN_MASK = 0x00ff0000;
-const int BLUE_MASK = 0x0000ff00;
-const int ALPHA_MASK = 0x000000ff;
+const size_t RED_MASK = 0xff000000;
+const size_t GREEN_MASK = 0x00ff0000;
+const size_t BLUE_MASK = 0x0000ff00;
+const size_t ALPHA_MASK = 0x000000ff;
 #else
-const int RED_MASK = 0x000000ff;
-const int GREEN_MASK = 0x0000ff00;
-const int BLUE_MASK = 0x00ff0000;
-const int ALPHA_MASK = 0xff000000;
+const size_t RED_MASK = 0x000000ff;
+const size_t GREEN_MASK = 0x0000ff00;
+const size_t BLUE_MASK = 0x00ff0000;
+const size_t ALPHA_MASK = 0xff000000;
 #endif
 
 enum UpOrientation {
@@ -72,11 +73,11 @@ Vector2D CreateIsometricPosition(Vector2D velocity, UpOrientation orientation);
 //Integer Vector3D stuffs
 
 typedef union {
-	int data[3];
+	size_t data[3];
 	struct {
-		int x;
-		int y;
-		int z;
+		size_t x;
+		size_t y;
+		size_t z;
 	};
 } Vector3Di;
 
@@ -85,18 +86,18 @@ typedef union {
 //Integer Vector4D stuffs
 
 typedef union {
-	int data[4];
+	size_t data[4];
 	struct {
-		int x;
-		int y;
-		int z;
-		int w;
+		size_t x;
+		size_t y;
+		size_t z;
+		size_t w;
 	};
 	struct {
-		int x;
-		int y;
-		int width;
-		int height;
+		size_t x;
+		size_t y;
+		size_t width;
+		size_t height;
 	};
 } Vector4Di;
 
@@ -114,6 +115,32 @@ typedef union {
 } Vector3Df;
 
 //End Float32 Vector3D stuffs
+
+//Float Vector4D stuffs
+
+typedef union {
+	float data[4];
+	struct {
+		float s0;
+		float t0;
+		float s1;
+		float t1;
+	};
+	struct {
+		float topLeftX;
+		float topLeftY;
+		float bottomRightX;
+		float bottomRightY;
+	};
+	struct {
+		float x;
+		float y;
+		float z;
+		float w;
+	};
+} Vector4Df;
+
+//End Float Vector4D stuffs
 
 //Vector (dynamically allocated list)
 
@@ -142,6 +169,7 @@ typedef struct VectorList {
 	void PopBack();
 	void Erase(size_t index);
 	void EraseRange(size_t first, size_t last);
+	void Clear();
 } VectorList;
 
 //End Vector

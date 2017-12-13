@@ -43,7 +43,7 @@ void Draw::Render() {
 	}
 }
 
-bool Draw::GetPixel(int x, int y, uint32_t* outPixel) {
+bool Draw::GetPixel(size_t x, size_t y, uint32_t* outPixel) {
 	if (this->gameSurface) {
 		this->pixels = static_cast<uint32_t*>(this->gameSurface->pixels);
 		*outPixel = this->pixels[(y * this->gameSurface->w) + x];
@@ -52,7 +52,7 @@ bool Draw::GetPixel(int x, int y, uint32_t* outPixel) {
 	return false;
 }
 
-bool Draw::SetPixel(int x, int y, uint32_t color) {
+bool Draw::SetPixel(size_t x, size_t y, uint32_t color) {
 	if (this->gameSurface && this->pixels) {
 		this->pixels[(y * this->gameSurface->w) + x] = color;
 		return true;

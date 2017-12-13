@@ -1,10 +1,10 @@
 #include "font.h"
 
-int FontTextureAtlas::Fit(size_t index, size_t width, size_t height) {
+size_t FontTextureAtlas::Fit(size_t index, size_t width, size_t height) {
 	Vector3Di* node = static_cast<Vector3Di*>(this->nodes->Get(index));
-	int x = node->x;
-	int y = node->y;
-	int widthLeft = width;
+	size_t x = node->x;
+	size_t y = node->y;
+	size_t widthLeft = width;
 	size_t i = index;
 	if ((x + width) > (this->width - 1))
 		return -1;
@@ -42,10 +42,10 @@ Vector4Di FontTextureAtlas::GetRegion(size_t width, size_t height) {
 	Vector4Di region = { {0, 0, width, height} };
 	size_t i;
 
-	int bestIndex = -1;
+	size_t bestIndex = -1;
 	size_t bestWidth = UINT_MAX;
 	size_t bestHeight = UINT_MAX;
-	int y;
+	size_t y;
 	for (i = 0; i < this->nodes->count; i++) {
 		y = this->Fit(i, width, height);
 		if (y >= 0) {
@@ -82,7 +82,7 @@ Vector4Di FontTextureAtlas::GetRegion(size_t width, size_t height) {
 		currentNode = static_cast<Vector3Di*>(this->nodes->Get(i));
 		previousNode = static_cast<Vector3Di*>(this->nodes->Get(i-1));
 		if (currentNode->x < (previousNode->x + previousNode->z)) {
-			int shrink = previousNode->x + previousNode->z - currentNode->x;
+			size_t shrink = previousNode->x + previousNode->z - currentNode->x;
 			currentNode->x += shrink;
 			currentNode->z -= shrink;
 			if (currentNode->z <= 0) {
@@ -98,6 +98,38 @@ Vector4Di FontTextureAtlas::GetRegion(size_t width, size_t height) {
 	this->Merge();
 	this->used += width * height;
 	return region;
+}
+
+void FontTextureAtlas::SetRegion(size_t x, size_t y, size_t width, size_t height, unsigned char* data, size_t stride) {
+	size_t depth = this->depth;
+	size_t charSize = sizeof(char);
+
+	assert(x > 0);
+	assert(y > 0);
+	assert(x < (this->width - 1));
+	assert((x + width) <= (this->width - 1));
+	assert(y < (this->height - 1));
+	assert((y + height) <= (this->height - 1));
+
+	//Prevents copying data from undefined position and prevents memcpy's undefined behavior
+	//when count is 0.
+	assert(height == 0 || (data != nullptr && width > 0));
+
+	for (size_t i = 0; i < height; i++) {
+		std::memcpy(this->atlasData + ((y + i) * this->width + x) * charSize * depth, data + (i * stride) * charSize, width * charSize * depth);
+	}
+}
+
+void FontTextureAtlas::ClearAtlas() {
+	Vector3Di node = { {1, 1, 1} };
+	assert(this->atlasData);
+	this->nodes->Clear();
+	this->used = 0;
+
+	//We need 1-pixel border around the whole atlas to avoid any artifacts when sampling texture
+	node.z = this->width - 2;
+	this->nodes->PushBack(&node);
+	std::memset(this->atlasData, 0, this->width * this->height * this->depth);
 }
 
 
@@ -118,7 +150,7 @@ FontTextureAtlas* CreateFontAtlas(size_t width, size_t height, size_t depth) {
 	self->id = 0;
 
 	//Add a 1-pixel thick border around whole atlas, to avoid unwanted sampling noises
-	Vector3Di node = { 1, 1, ((int)(width & INT_MAX) - 2) };
+	Vector3Di node = { 1, 1, ((size_t)(width & INT_MAX) - 2) };
 	self->nodes = CreateVectorList(sizeof(Vector3Di));
 	self->nodes->PushBack(&node);
 

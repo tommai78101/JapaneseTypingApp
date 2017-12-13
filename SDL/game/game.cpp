@@ -24,9 +24,9 @@ Game::~Game() {
 		SDL_FreeSurface(this->gameSurface);
 		this->gameSurface = nullptr;
 	}
-	if (this->mainTexture) {
-		SDL_DestroyTexture(this->mainTexture);
-		this->mainTexture = nullptr;
+	if (this->masize_texture) {
+		SDL_DestroyTexture(this->masize_texture);
+		this->masize_texture = nullptr;
 	}
 	if (this->gameWindowRenderer) {
 		SDL_DestroyRenderer(this->gameWindowRenderer);
@@ -51,37 +51,35 @@ void Game::Initialize(std::string title) {
 	SDL_DisplayMode currentDisplayMode;
 	for (int i = 0; i < SDL_GetNumVideoDisplays(); i++) {
 		int shouldBeZero = SDL_GetCurrentDisplayMode(i, &currentDisplayMode);
-		if (shouldBeZero != 0) {
-			std::cout << "Could not get display mode for video display " << i << ": " << SDL_GetError() << std::endl;
-		}
-		else {
+		if (shouldBeZero == 0) {
 			break;
 		}
+		std::cout << "Could not get display mode for video display " << i << ": " << SDL_GetError() << std::endl;
 	}
 
 	//We then use the known display properties to determine the absolute screen position on the display, 
-	//then take our application title and the intended game screen size Then, we and show it to the user.
-	this->gameWindow = SDL_CreateWindow(title.c_str(), (currentDisplayMode.w - this->width) / 2, (currentDisplayMode.h - this->height) / 2, this->width, this->height, SDL_WINDOW_SHOWN);
+	//then take our application title and the size_tended game screen size Then, we and show it to the user.
+	this->gameWindow = SDL_CreateWindow(title.c_str(), (currentDisplayMode.w - static_cast<int>(this->width)) / 2, (currentDisplayMode.h - static_cast<int>(this->height)) / 2, static_cast<int>(this->width), static_cast<int>(this->height), SDL_WINDOW_SHOWN);
 
 	//We create a SDL renderer that we can bind to the game window.
 	this->gameWindowRenderer = SDL_CreateRenderer(this->gameWindow, -1, SDL_RENDERER_ACCELERATED);
 
 	//We create a SDL surface that we can use to send over to the SDL renderer to draw in the game window.
-	this->gameSurface = SDL_CreateRGBSurface(0, this->width / this->scale, this->height / this->scale, 32, RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
+	this->gameSurface = SDL_CreateRGBSurface(0, static_cast<int>(this->width / this->scale), static_cast<int>(this->height / this->scale), 32, RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
 	if (this->gameSurface == nullptr) {
 		//We output the errors and then force-quit the game.
 		std::cout << "SDL_CreateRGBSurface: " << SDL_GetError() << std::endl;
 		this->QuitGame();
 	}
 
-	//The SDL surface's "pixels" variable is a void pointer to an array of pixels. We need to first convert the type
-	//of the pointer to something that we can manage easily.
+	//The SDL surface's "pixels" variable is a void posize_ter to an array of pixels. We need to first convert the type
+	//of the posize_ter to something that we can manage easily.
 	this->pixels = static_cast<uint32_t*>(this->gameSurface->pixels);
 
 	//Using the SDL renderer, we use the SDL surface to create a SDL texture. Output error and force-quit the game,
 	//if there are any errors.
-	this->mainTexture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
-	if (this->mainTexture == nullptr) {
+	this->masize_texture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
+	if (this->masize_texture == nullptr) {
 		std::cout << "SDL_CreateTextureFromSurface: " << SDL_GetError() << std::endl;
 		this->QuitGame();
 	}
@@ -125,7 +123,7 @@ void Game::GameLoop() {
 		//We update the last known time counter derived from the above timing calculations for the update tick.
 		lastPerformanceCounter = currentPerformanceCounter;
 
-		//We give back the CPU its own time, and delay our game up to that point. This is to prevent the CPU
+		//We give back the CPU its own time, and delay our game up to that posize_t. This is to prevent the CPU
 		//from being hogged up by our game, avoiding the main thread (kernel thread) to be overtaken for rendering our game.
 		SDL_Delay(1);
 	}
@@ -162,11 +160,11 @@ void Game::Render() {
 	SDL_RenderDrawRect(this->gameWindowRenderer, &r);
 
 	////Creates a texture to blit to the screen surface (display surface).
-	//if (this->mainTexture) {
-	//	SDL_DestroyTexture(this->mainTexture);
+	//if (this->masize_texture) {
+	//	SDL_DestroyTexture(this->masize_texture);
 	//}
-	//this->mainTexture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
-	//SDL_RenderCopy(this->gameWindowRenderer, this->mainTexture, nullptr, nullptr); //nullptr: Use defaults.
+	//this->masize_texture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
+	//SDL_RenderCopy(this->gameWindowRenderer, this->masize_texture, nullptr, nullptr); //nullptr: Use defaults.
 
 	//Using Draw class object to render
 	this->drawSystem->Render();
@@ -215,11 +213,11 @@ SDL_Renderer* Game::GetGameRenderer() const {
 }
 
 SDL_Texture* Game::GetTexture() const {
-	return this->mainTexture;
+	return this->masize_texture;
 }
 
 void Game::SetTexture(SDL_Texture* texture) {
-	this->mainTexture = texture;
+	this->masize_texture = texture;
 }
 
 SDL_Surface* Game::GetSurface() const {
@@ -230,22 +228,22 @@ void Game::SetSurface(SDL_Surface* surface) {
 	this->gameSurface = surface;
 }
 
-int Game::GetWidth() const {
+size_t Game::GetWidth() const {
 	return this->width;
 }
 
-int Game::GetHeight() const {
+size_t Game::GetHeight() const {
 	return this->height;
 }
 
 
-void Game::SetPixel(int x, int y, uint32_t color) {
+void Game::SetPixel(size_t x, size_t y, uint32_t color) {
 	if (this->gameSurface) {
 		this->pixels[(y * this->gameSurface->w) + x] = color;
 	}
 }
 
-uint32_t Game::GetPixel(int x, int y) {
+uint32_t Game::GetPixel(size_t x, size_t y) {
 	if (this->gameSurface) {
 		return this->pixels[(y * this->gameSurface->w) + x];
 	}

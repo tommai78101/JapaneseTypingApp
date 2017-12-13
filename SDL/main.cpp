@@ -9,9 +9,9 @@
 #  undef main
 #endif
 
-int main(int c, char* v[]) {
+int main(size_t c, char* v[]) {
 	//Initialize the SDL library. 
-	//SDL_Init returns a negative integer (error) or 0 (success). 
+	//SDL_Init returns a negative size_teger (error) or 0 (success). 
 	//https://wiki.libsdl.org/SDL_Init (SDL docs)
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		std::cout << "SDL Error: " << SDL_GetError() << std::endl;
