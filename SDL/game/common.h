@@ -19,6 +19,8 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
+#include <sstream>
+#include <locale>
 
 #ifdef _WIN32
 #	include <Windows.h>

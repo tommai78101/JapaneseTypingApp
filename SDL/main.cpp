@@ -18,6 +18,7 @@ int main(size_t c, char* v[]) {
 	}
 	catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
+		system("pause");
 		return -1;
 	}
 

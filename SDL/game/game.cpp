@@ -26,13 +26,12 @@ Game::Game() : gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false)
 	this->defaultFont = TTF_OpenFont("font/meiryo.ttc", 12);
 	if (this->defaultFont == nullptr) {
 		std::cerr << "Unable to find the font." << std::endl;
-	}
-	else {
 		TCHAR pBuffer[MAX_PATH];		//Multibyte string in Windows (internal as UTF-16 LE)
 		if (GetModuleFileName(NULL, pBuffer, MAX_PATH) != 0) {
 			std::wstring str(pBuffer);
-			std::cerr << "Current working directory: " << str.c_str() << std::endl;
+			std::wcerr << "Current working directory: " << str.c_str() << std::endl;
 		}
+		throw std::exception("No fonts set.");
 	}
 
 	//Non-SDL objects initialization.
