@@ -19,12 +19,6 @@
     <Filter Include="Header Files\game">
       <UniqueIdentifier>{18cb68ae-9785-4475-a240-2f99161d6b63}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\font">
-      <UniqueIdentifier>{4950d2e3-c569-4a8c-8b19-4fa7d493988a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\font">
-      <UniqueIdentifier>{1d380123-0e88-4ab2-92d4-3703911ec635}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -42,9 +36,6 @@
     <ClCompile Include="game\draw.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="font\font.cpp">
-      <Filter>Source Files\font</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\game.h">
@@ -55,9 +46,6 @@
     </ClInclude>
     <ClInclude Include="game\draw.h">
       <Filter>Header Files\game</Filter>
-    </ClInclude>
-    <ClInclude Include="font\font.h">
-      <Filter>Header Files\font</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,11 +3,28 @@
 
 #pragma once
 
+//SDL libraries
+#include <SDL.h>
+#include <SDL_ttf.h>
+
 //Standard libraries
+#include <cstring>						//For std::memmove, std::memcpy only
+#include <string>
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+#include <map>
+#include <stdexcept>
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
-#include <cstring>  //For std::memmove, std::memcpy only
+
+#ifdef _WIN32
+#	include <Windows.h>
+#elif defined _UNIX
+#	include <unistd.h>
+#endif
 
 //For anything using size_t, use size_t.
 

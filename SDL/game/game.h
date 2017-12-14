@@ -1,21 +1,6 @@
 #ifndef GAME_H_
 #	define GAME_H_
 
-#include <SDL.h>
-#include <cstring>
-#include <string>
-#include <iostream>
-#include <cstdlib>
-#include <ctime>
-#include <cmath>
-#include <map>
-
-#ifdef _WIN32
-#	include <Windows.h>
-#elif defined _UNIX
-#	include <unistd.h>
-#endif
-
 #include "../game/common.h"
 #include "../game/draw.h"
 
@@ -23,23 +8,32 @@ class Draw;
 
 class Game {
 protected:
+	//Game input properties
 	std::map<SDL_Scancode, bool> inputs;
 
+	//Game object properties
 	Vector2D position;
 	Vector2D velocity;
 	UpOrientation currentUpOrientation;
 
+	//Game properties
 	size_t width;
 	size_t height;
 	size_t scale;
 	size_t clearColor;
 	bool quitFlag;
 	uint32_t* pixels;
+
+	//SDL stuffs
 	SDL_Window* gameWindow;
 	SDL_Renderer* gameWindowRenderer;
 	SDL_Texture* masize_texture;
 	SDL_Surface* gameSurface;
 
+	//SDL_ttf stuffs
+	TTF_Font* defaultFont;
+
+	//Subcomponents
 	Draw* drawSystem;
 
 public:

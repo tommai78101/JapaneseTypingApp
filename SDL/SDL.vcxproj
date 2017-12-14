@@ -76,12 +76,23 @@
     <LibraryPath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\lib\x64;C:\Users\Thompson\Documents\VSProjects\SDL\packages\sdl2.v140.2.0.4\build\native\lib\x64\Debug;$(LibraryPath)</LibraryPath>
     <IncludePath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\include;C:\Users\Thompson\Documents\VSProjects\SDL\packages\sdl2.v140.2.0.4\build\native\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\include;C:\Users\Thompson\Documents\VSProjects\SDL\packages\sdl2.v140.2.0.4\build\native\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\lib\x86;C:\Users\Thompson\Documents\VSProjects\SDL\packages\sdl2.v140.2.0.4\build\native\lib\Win32\Debug;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\include;C:\Users\Thompson\Documents\VSProjects\SDL\packages\sdl2.v140.2.0.4\build\native\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\lib\x86;C:\Users\Thompson\Documents\VSProjects\SDL\packages\sdl2.v140.2.0.4\build\native\lib\Win32\Release;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -94,7 +105,7 @@
     <Link>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\Thompson\Documents\VSProjects\SDL\packages\sdl2.v140.2.0.4\build\native\lib\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -109,6 +120,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -124,20 +136,19 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <EntryPointSymbol>SDL_main</EntryPointSymbol>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="font\font.cpp" />
     <ClCompile Include="game\common.cpp" />
     <ClCompile Include="game\draw.cpp" />
     <ClCompile Include="game\game.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="font\font.h" />
     <ClInclude Include="game\common.h" />
     <ClInclude Include="game\draw.h" />
     <ClInclude Include="game\game.h" />

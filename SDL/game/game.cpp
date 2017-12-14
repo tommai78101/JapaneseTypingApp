@@ -11,6 +11,28 @@ Game::Game() : gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false)
 	this->clearColor = 0x0;
 
 	//SDL objects initialization.
+	//SDL_Init returns a negative size_teger (error) or 0 (success). 
+	//https://wiki.libsdl.org/SDL_Init (SDL docs)
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+		std::cout << "SDL Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+
+	//SDL_ttf initialization.
+	if (TTF_WasInit() <= 0 && TTF_Init() < 0) {
+		std::cout << "SDL_ttf Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	this->defaultFont = TTF_OpenFont("font/meiryo.ttc", 12);
+	if (this->defaultFont == nullptr) {
+		std::cerr << "Unable to find the font." << std::endl;
+		LPWSTR pBuffer = NULL;		//Multibyte string in Windows (internal as UTF-16 LE)
+		if (GetModuleFileNameW(NULL, pBuffer, 256) != 0) {
+			std::wstring str(pBuffer);
+			std::cerr << "Current working directory: " << str.c_str() << std::endl;
+			return;
+		}
+	}
 
 	//Non-SDL objects initialization.
 	this->drawSystem = new Draw(this, 1.0f);
@@ -37,12 +59,18 @@ Game::~Game() {
 		this->gameWindow = nullptr;
 	}
 
+	//SDL_ttf objects
+	TTF_CloseFont(this->defaultFont);
+
 	//Non-SDL objects
 	if (this->drawSystem) {
 		delete this->drawSystem;
 		this->drawSystem = nullptr;
 	}
-	SDL_Quit();
+
+	//SDL library
+	TTF_Quit();				//SDL_ttf
+	SDL_Quit();				//SDL
 }
 
 void Game::Initialize(std::string title) {
