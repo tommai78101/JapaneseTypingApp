@@ -1,10 +1,12 @@
-#ifndef GAME_H_
+﻿#ifndef GAME_H_
 #	define GAME_H_
 
 #include "../game/common.h"
 #include "../game/draw.h"
 
 class Draw;
+
+typedef std::basic_string<Uint16, std::char_traits<Uint16>, std::allocator<Uint16>> u16string;
 
 class Game {
 protected:
@@ -31,7 +33,14 @@ protected:
 	SDL_Surface* gameSurface;
 
 	//SDL_ttf stuffs
+	int fontWidth = 0;
+	int fontHeight = 0;
+	int lineSkip = 0;
 	TTF_Font* defaultFont;
+	SDL_Texture* fontSurfaceSolid;
+	SDL_Texture* fontSurfaceShaded;
+	SDL_Texture* fontSurfaceBlended;
+
 
 	//Subcomponents
 	Draw* drawSystem;

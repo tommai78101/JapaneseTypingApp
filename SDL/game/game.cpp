@@ -1,4 +1,4 @@
-#include "game.h"
+﻿#include "game.h"
 
 Game::Game() : gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false), width(400), height(400), pixels(nullptr), scale(8) {
 	//Setting up random numbers.
@@ -26,11 +26,12 @@ Game::Game() : gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false)
 	this->defaultFont = TTF_OpenFont("font/meiryo.ttc", 12);
 	if (this->defaultFont == nullptr) {
 		std::cerr << "Unable to find the font." << std::endl;
-		LPWSTR pBuffer = NULL;		//Multibyte string in Windows (internal as UTF-16 LE)
-		if (GetModuleFileNameW(NULL, pBuffer, 256) != 0) {
+	}
+	else {
+		TCHAR pBuffer[MAX_PATH];		//Multibyte string in Windows (internal as UTF-16 LE)
+		if (GetModuleFileName(NULL, pBuffer, MAX_PATH) != 0) {
 			std::wstring str(pBuffer);
 			std::cerr << "Current working directory: " << str.c_str() << std::endl;
-			return;
 		}
 	}
 
@@ -99,6 +100,34 @@ void Game::Initialize(std::string title) {
 		std::cout << "SDL_CreateRGBSurface: " << SDL_GetError() << std::endl;
 		this->QuitGame();
 	}
+
+	//We first need to determine the size of the fonts in pixels.
+	std::wstring testText(L"おはいよ！");
+	u16string utext(testText.begin(), testText.end());
+	if (TTF_SizeUNICODE(this->defaultFont, utext.c_str(), &this->fontWidth, &this->fontHeight) < 0) {
+		std::cerr << "Error: Unable to retrieve size of string text." << std::endl;
+		this->QuitGame();
+	}
+
+	//We then determine the line skip.
+	this->lineSkip = TTF_FontLineSkip(this->defaultFont);
+
+	//We create the font surfaces based on text solid/shaded/blended attributes.
+	SDL_Surface* tempFont;
+	SDL_Color color = {};
+	SDL_Color shade = {};
+	color.r = 255;
+	tempFont = TTF_RenderUNICODE_Solid(this->defaultFont, utext.c_str(), color);
+	this->fontSurfaceSolid = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
+	color.r = 0;
+	color.g = 200;
+	shade.b = 128;
+	tempFont = TTF_RenderUNICODE_Shaded(this->defaultFont, utext.c_str(), color, shade);
+	this->fontSurfaceShaded = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
+	color.g = 0;
+	color.b = 255;
+	tempFont = TTF_RenderUNICODE_Blended(this->defaultFont, utext.c_str(), color);
+	this->fontSurfaceBlended = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
 
 	//The SDL surface's "pixels" variable is a void posize_ter to an array of pixels. We need to first convert the type
 	//of the posize_ter to something that we can manage easily.
@@ -196,6 +225,18 @@ void Game::Render() {
 
 	//Using Draw class object to render
 	this->drawSystem->Render();
+
+	//For testing, we draw the fonts
+	SDL_Rect destination;
+	destination.x = 0;
+	destination.y = 40;
+	destination.w = this->fontWidth;
+	destination.h = this->fontHeight;
+	SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceSolid, nullptr, &destination);
+	destination.y += this->fontHeight + 10;
+	SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceShaded, nullptr, &destination);
+	destination.y += this->fontHeight + 10;
+	SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceBlended, nullptr, &destination);
 
 	//Update the renderer.
 	SDL_RenderPresent(this->gameWindowRenderer);
