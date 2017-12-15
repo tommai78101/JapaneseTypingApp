@@ -143,12 +143,14 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="game\block.cpp" />
     <ClCompile Include="game\common.cpp" />
     <ClCompile Include="game\draw.cpp" />
     <ClCompile Include="game\game.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="game\block.h" />
     <ClInclude Include="game\common.h" />
     <ClInclude Include="game\draw.h" />
     <ClInclude Include="game\game.h" />

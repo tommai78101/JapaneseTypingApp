@@ -28,8 +28,9 @@
 #	include <unistd.h>
 #endif
 
-//For anything using size_t, use size_t.
+typedef std::basic_string<Uint16, std::char_traits<Uint16>, std::allocator<Uint16>> u16string;
 
+//For anything using size_t, use size_t.
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 const size_t RED_MASK = 0xff000000;
 const size_t GREEN_MASK = 0x00ff0000;
@@ -47,6 +48,42 @@ enum UpOrientation {
 	NORTHEAST,
 	NORTHWEST
 };
+
+//Helper functions
+
+static inline SDL_Surface* SDLHelper_CreateSurface(int width, int height, int depth) {
+	return SDL_CreateRGBSurface(0, width, height, depth, RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
+}
+
+static bool CreateUnicodeTexture(wchar_t* LString, SDL_Renderer* renderer, TTF_Font* font, SDL_Color color, SDL_Surface** outputSurface, SDL_Texture** outputTexture) {
+	try {
+		std::wstring temp(LString);
+		u16string buffer(temp.begin(), temp.end());
+		*outputSurface = TTF_RenderUNICODE_Solid(font, buffer.c_str(), color);
+		*outputTexture = SDL_CreateTextureFromSurface(renderer, *outputSurface);
+		return true;
+	}
+	catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return false;
+	}
+}
+
+static bool GetCharacterSize(wchar_t* LString, TTF_Font* font, int* outWidth, int* outHeight) {
+	try {
+		std::wstring temp(LString);
+		u16string buffer(temp.begin(), temp.end());
+		if (TTF_SizeUNICODE(font, buffer.c_str(), outWidth, outHeight) == -1) {
+			std::cerr << "Wrong size of unicode text." << std::endl;
+			throw std::exception("Unicode text is of wrong size.");
+		}
+		return true;
+	}
+	catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return false;
+	}
+}
 
 //Vector2D stuffs
 

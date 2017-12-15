@@ -39,7 +39,7 @@ void Draw::Render() {
 	if (this->gameTexture) {
 		SDL_Renderer* renderer = this->game->GetGameRenderer();
 		SDL_RenderCopy(renderer, this->gameTexture, nullptr, nullptr);
-		SDL_RenderPresent(renderer);
+		//SDL_RenderPresent(renderer);
 	}
 }
 

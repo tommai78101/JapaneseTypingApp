@@ -23,7 +23,7 @@ Game::Game() : gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false)
 		std::cout << "SDL_ttf Error: " << TTF_GetError() << std::endl;
 		return;
 	}
-	this->defaultFont = TTF_OpenFont("font/meiryo.ttc", 12);
+	this->defaultFont = TTF_OpenFont("font/meiryo.ttc", 36);
 	if (this->defaultFont == nullptr) {
 		std::cerr << "Unable to find the font." << std::endl;
 		TCHAR pBuffer[MAX_PATH];		//Multibyte string in Windows (internal as UTF-16 LE)
@@ -33,9 +33,6 @@ Game::Game() : gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false)
 		}
 		throw std::exception("No fonts set.");
 	}
-
-	//Non-SDL objects initialization.
-	this->drawSystem = new Draw(this, 1.0f);
 }
 
 Game::~Game() {
@@ -46,9 +43,9 @@ Game::~Game() {
 		SDL_FreeSurface(this->gameSurface);
 		this->gameSurface = nullptr;
 	}
-	if (this->masize_texture) {
-		SDL_DestroyTexture(this->masize_texture);
-		this->masize_texture = nullptr;
+	if (this->mainTexture) {
+		SDL_DestroyTexture(this->mainTexture);
+		this->mainTexture = nullptr;
 	}
 	if (this->gameWindowRenderer) {
 		SDL_DestroyRenderer(this->gameWindowRenderer);
@@ -66,6 +63,10 @@ Game::~Game() {
 	if (this->drawSystem) {
 		delete this->drawSystem;
 		this->drawSystem = nullptr;
+	}
+	if (this->block) {
+		delete this->block;
+		this->block = nullptr;
 	}
 
 	//SDL library
@@ -93,40 +94,40 @@ void Game::Initialize(std::string title) {
 	this->gameWindowRenderer = SDL_CreateRenderer(this->gameWindow, -1, SDL_RENDERER_ACCELERATED);
 
 	//We create a SDL surface that we can use to send over to the SDL renderer to draw in the game window.
-	this->gameSurface = SDL_CreateRGBSurface(0, static_cast<int>(this->width / this->scale), static_cast<int>(this->height / this->scale), 32, RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
+	this->gameSurface = SDLHelper_CreateSurface(static_cast<int>(this->width / this->scale), static_cast<int>(this->height / this->scale), 32);
 	if (this->gameSurface == nullptr) {
 		//We output the errors and then force-quit the game.
 		std::cout << "SDL_CreateRGBSurface: " << SDL_GetError() << std::endl;
 		this->QuitGame();
 	}
 
-	//We first need to determine the size of the fonts in pixels.
-	std::wstring testText(L"おはいよ！");
-	u16string utext(testText.begin(), testText.end());
-	if (TTF_SizeUNICODE(this->defaultFont, utext.c_str(), &this->fontWidth, &this->fontHeight) < 0) {
-		std::cerr << "Error: Unable to retrieve size of string text." << std::endl;
-		this->QuitGame();
-	}
+	////We first need to determine the size of the fonts in pixels.
+	//std::wstring testText(L"おはいよ！");
+	//u16string utext(testText.begin(), testText.end());
+	//if (TTF_SizeUNICODE(this->defaultFont, utext.c_str(), &this->fontWidth, &this->fontHeight) < 0) {
+	//	std::cerr << "Error: Unable to retrieve size of string text." << std::endl;
+	//	this->QuitGame();
+	//}
 
-	//We then determine the line skip.
-	this->lineSkip = TTF_FontLineSkip(this->defaultFont);
+	////We then determine the line skip.
+	//this->lineSkip = TTF_FontLineSkip(this->defaultFont);
 
-	//We create the font surfaces based on text solid/shaded/blended attributes.
-	SDL_Surface* tempFont;
-	SDL_Color color = {};
-	SDL_Color shade = {};
-	color.r = 255;
-	tempFont = TTF_RenderUNICODE_Solid(this->defaultFont, utext.c_str(), color);
-	this->fontSurfaceSolid = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
-	color.r = 0;
-	color.g = 200;
-	shade.b = 128;
-	tempFont = TTF_RenderUNICODE_Shaded(this->defaultFont, utext.c_str(), color, shade);
-	this->fontSurfaceShaded = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
-	color.g = 0;
-	color.b = 255;
-	tempFont = TTF_RenderUNICODE_Blended(this->defaultFont, utext.c_str(), color);
-	this->fontSurfaceBlended = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
+	////We create the font surfaces based on text solid/shaded/blended attributes.
+	//SDL_Surface* tempFont;
+	//SDL_Color color = {};
+	//SDL_Color shade = {};
+	//color.r = 255;
+	//tempFont = TTF_RenderUNICODE_Solid(this->defaultFont, utext.c_str(), color);
+	//this->fontSurfaceSolid = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
+	//color.r = 0;
+	//color.g = 200;
+	//shade.b = 128;
+	//tempFont = TTF_RenderUNICODE_Shaded(this->defaultFont, utext.c_str(), color, shade);
+	//this->fontSurfaceShaded = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
+	//color.g = 0;
+	//color.b = 255;
+	//tempFont = TTF_RenderUNICODE_Blended(this->defaultFont, utext.c_str(), color);
+	//this->fontSurfaceBlended = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
 
 	//The SDL surface's "pixels" variable is a void posize_ter to an array of pixels. We need to first convert the type
 	//of the posize_ter to something that we can manage easily.
@@ -134,11 +135,15 @@ void Game::Initialize(std::string title) {
 
 	//Using the SDL renderer, we use the SDL surface to create a SDL texture. Output error and force-quit the game,
 	//if there are any errors.
-	this->masize_texture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
-	if (this->masize_texture == nullptr) {
+	this->mainTexture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
+	if (this->mainTexture == nullptr) {
 		std::cout << "SDL_CreateTextureFromSurface: " << SDL_GetError() << std::endl;
 		this->QuitGame();
 	}
+
+	//Non-SDL objects initialization.
+	this->drawSystem = new Draw(this, 1.0f);
+	this->block = new Block(this->gameWindowRenderer, this->defaultFont, L"あ");
 }
 
 bool Game::IsWindowInitialized() const {
@@ -194,6 +199,8 @@ void Game::Update() {
 	//(TEMP): Updates the Cartesian position using Isometric coordinates.
 	this->position += CreateIsometricPosition(this->velocity, this->currentUpOrientation) * 0.1f;
 	this->velocity = {};
+
+	this->block->Update(static_cast<int>(this->position.x), static_cast<int>(this->position.y));
 }
 
 void Game::Render() {
@@ -203,39 +210,28 @@ void Game::Render() {
 	SDL_SetRenderDrawColor(this->gameWindowRenderer, 255, 255, 255, 255);
 	SDL_RenderClear(this->gameWindowRenderer);
 
-	//Drawing a rectangle (square). Requires that the values are strictly in order of the struct object's members.
-	//We set the draw color to blue.
-	SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 255, 255);
-	//Struct object initialization
-	SDL_Rect r = {
-		(int) std::roundf(this->position.x),        //absolute left
-		(int) std::roundf(this->position.y),        //absolute top
-		50,                                         //width
-		50,                                         //height
-	};
-	SDL_RenderDrawRect(this->gameWindowRenderer, &r);
-
 	////Creates a texture to blit to the screen surface (display surface).
-	//if (this->masize_texture) {
-	//	SDL_DestroyTexture(this->masize_texture);
+	//if (this->mainTexture) {
+	//	SDL_DestroyTexture(this->mainTexture);
 	//}
-	//this->masize_texture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
-	//SDL_RenderCopy(this->gameWindowRenderer, this->masize_texture, nullptr, nullptr); //nullptr: Use defaults.
+	//this->mainTexture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
+	//SDL_RenderCopy(this->gameWindowRenderer, this->mainTexture, nullptr, nullptr); //nullptr: Use defaults.
 
 	//Using Draw class object to render
 	this->drawSystem->Render();
+	this->block->Render();
 
-	//For testing, we draw the fonts
-	SDL_Rect destination;
-	destination.x = 0;
-	destination.y = 40;
-	destination.w = this->fontWidth;
-	destination.h = this->fontHeight;
-	SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceSolid, nullptr, &destination);
-	destination.y += this->fontHeight + 10;
-	SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceShaded, nullptr, &destination);
-	destination.y += this->fontHeight + 10;
-	SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceBlended, nullptr, &destination);
+	////For testing, we draw the fonts
+	//SDL_Rect destination;
+	//destination.x = 0;
+	//destination.y = 40;
+	//destination.w = this->fontWidth;
+	//destination.h = this->fontHeight;
+	//SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceSolid, nullptr, &destination);
+	//destination.y += this->fontHeight + 10;
+	//SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceShaded, nullptr, &destination);
+	//destination.y += this->fontHeight + 10;
+	//SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceBlended, nullptr, &destination);
 
 	//Update the renderer.
 	SDL_RenderPresent(this->gameWindowRenderer);
@@ -281,11 +277,11 @@ SDL_Renderer* Game::GetGameRenderer() const {
 }
 
 SDL_Texture* Game::GetTexture() const {
-	return this->masize_texture;
+	return this->mainTexture;
 }
 
 void Game::SetTexture(SDL_Texture* texture) {
-	this->masize_texture = texture;
+	this->mainTexture = texture;
 }
 
 SDL_Surface* Game::GetSurface() const {

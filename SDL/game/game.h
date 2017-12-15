@@ -3,10 +3,10 @@
 
 #include "../game/common.h"
 #include "../game/draw.h"
+#include "../game/block.h"
 
 class Draw;
-
-typedef std::basic_string<Uint16, std::char_traits<Uint16>, std::allocator<Uint16>> u16string;
+class Block;
 
 class Game {
 protected:
@@ -29,7 +29,7 @@ protected:
 	//SDL stuffs
 	SDL_Window* gameWindow;
 	SDL_Renderer* gameWindowRenderer;
-	SDL_Texture* masize_texture;
+	SDL_Texture* mainTexture;
 	SDL_Surface* gameSurface;
 
 	//SDL_ttf stuffs
@@ -41,9 +41,12 @@ protected:
 	SDL_Texture* fontSurfaceShaded;
 	SDL_Texture* fontSurfaceBlended;
 
-
 	//Subcomponents
 	Draw* drawSystem;
+
+	//Others
+	Block* block;
+	
 
 public:
 	Game();
