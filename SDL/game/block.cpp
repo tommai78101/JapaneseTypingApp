@@ -1,16 +1,6 @@
 ﻿#include "block.h"
 
-Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, wchar_t* character) {
-	/* (Left -> Right)
-	flags - the flags are unused and should be set to 0
-	width - the width of the surface
-	height - the height of the surface
-	depth - the depth of the surface in bits; see Remarks for details
-	Rmask - the red mask for the pixels
-	Gmask - the green mask for the pixels
-	Bmask - the blue mask for the pixels
-	Amask - the alpha mask for the pixels
-	*/
+Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, Uint16* str) {
 	this->blockSurface = SDLHelper_CreateSurface(this->blockSize, this->blockSize, 32);
 
 	//Block class properties
@@ -20,8 +10,9 @@ Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, wchar_t* character) {
 	this->positionX = 0;
 	this->positionY = 0;
 	this->color = {};
-	GetCharacterSize(character, font, &this->characterWidth, &this->characterHeight);
-	CreateUnicodeTexture(character, this->gameRenderer, font, this->color, &this->glyph, &this->glyphTexture);
+	TTF_SizeUNICODE(font, str, &this->characterWidth, &this->characterHeight);
+	this->glyph = TTF_RenderUNICODE_Solid(font, str, this->color);
+	this->glyphTexture = SDL_CreateTextureFromSurface(gameRenderer, this->glyph);
 }
 
 Block::~Block() {
@@ -65,10 +56,10 @@ void Block::Render() {
 	SDL_SetRenderDrawColor(this->gameRenderer, 0, 0, 255, 255);
 	//Struct object initialization
 	SDL_Rect r = {
-		(int) std::roundf(this->positionX),			//absolute left
-		(int) std::roundf(this->positionY),			//absolute top
-		Block::blockSize,							//width
-		Block::blockSize							//height
+		this->positionX,			//absolute left
+		this->positionY,			//absolute top
+		Block::blockSize,			//width
+		Block::blockSize			//height
 	};
 	SDL_RenderDrawRect(this->gameRenderer, &r);
 

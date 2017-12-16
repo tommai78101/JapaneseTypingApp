@@ -15,7 +15,8 @@ protected:
 public:
 	static const int blockSize = 50;	//Width and height. It's a square.
 
-	Block(SDL_Renderer* gameRenderer, TTF_Font* font, wchar_t* character);
+	//Block(SDL_Renderer* gameRenderer, TTF_Font* font, wchar_t* character);
+	Block(SDL_Renderer* gameRenderer, TTF_Font* font, Uint16* str);
 	~Block();
 	void* pixels;
 	wchar_t character;

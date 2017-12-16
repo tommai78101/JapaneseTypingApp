@@ -8,7 +8,9 @@ int main(size_t c, char* v[]) {
 	try {
 		//Allocate the program on the stack, so it is guaranteed to be cleared
 		//The Game class constructor handles game-specific variable initializations.
-		Game game;
+		//600 = width of playing field
+		//400 = 300 of playing field + 100 UI at the top.
+		Game game(600, 400);
 
 		//Initialize the game, along with the title.
 		game.Initialize("Hello world.");

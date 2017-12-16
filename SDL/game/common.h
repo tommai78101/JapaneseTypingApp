@@ -1,4 +1,4 @@
-#ifndef __COMMON_H__
+﻿#ifndef __COMMON_H__
 #	define __COMMON_H__
 
 #pragma once
@@ -52,6 +52,16 @@ enum UpOrientation {
 //Helper functions
 
 static inline SDL_Surface* SDLHelper_CreateSurface(int width, int height, int depth) {
+	/* SDL_CreateRGBSurface parameters: (Left -> Right)
+		flags - the flags are unused and should be set to 0
+		width - the width of the surface
+		height - the height of the surface
+		depth - the depth of the surface in bits; see Remarks for details
+		Rmask - the red mask for the pixels
+		Gmask - the green mask for the pixels
+		Bmask - the blue mask for the pixels
+		Amask - the alpha mask for the pixels
+	*/
 	return SDL_CreateRGBSurface(0, width, height, depth, RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
 }
 
@@ -83,6 +93,11 @@ static bool GetCharacterSize(wchar_t* LString, TTF_Font* font, int* outWidth, in
 		std::cerr << e.what() << std::endl;
 		return false;
 	}
+}
+
+static inline Uint16* Convert(wchar_t LString[]) {
+	//THIS WILL BREAK SOMEDAY IN THE FUTURE.
+	return reinterpret_cast<Uint16*>(&(LString[0]));
 }
 
 //Vector2D stuffs

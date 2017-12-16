@@ -24,7 +24,9 @@ protected:
 	size_t scale;
 	size_t clearColor;
 	bool quitFlag;
+	bool shouldInvalidateInputString;
 	uint32_t* pixels;
+	std::wstring inputString;
 
 	//SDL stuffs
 	SDL_Window* gameWindow;
@@ -42,14 +44,16 @@ protected:
 	SDL_Texture* fontSurfaceBlended;
 
 	//Subcomponents
-	Draw* drawSystem;
+	//Draw* drawSystem;
 
 	//Others
 	Block* block;
 	
 
 public:
-	Game();
+	static const int gravity = -1;
+
+	Game(int newWidth, int newHeight);
 	~Game();
 
 	void Initialize(std::string title);

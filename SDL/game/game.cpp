@@ -1,6 +1,6 @@
 ﻿#include "game.h"
 
-Game::Game() : gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false), width(400), height(400), pixels(nullptr), scale(8) {
+Game::Game(int newWidth = 400, int newHeight = 400) : gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false), width(newWidth), height(newHeight), pixels(nullptr), scale(8) {
 	//Setting up random numbers.
 	srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -60,10 +60,10 @@ Game::~Game() {
 	TTF_CloseFont(this->defaultFont);
 
 	//Non-SDL objects
-	if (this->drawSystem) {
-		delete this->drawSystem;
-		this->drawSystem = nullptr;
-	}
+	//if (this->drawSystem) {
+	//	delete this->drawSystem;
+	//	this->drawSystem = nullptr;
+	//}
 	if (this->block) {
 		delete this->block;
 		this->block = nullptr;
@@ -142,8 +142,8 @@ void Game::Initialize(std::string title) {
 	}
 
 	//Non-SDL objects initialization.
-	this->drawSystem = new Draw(this, 1.0f);
-	this->block = new Block(this->gameWindowRenderer, this->defaultFont, L"あ");
+	//this->drawSystem = new Draw(this, 1.0f);
+	this->block = new Block(this->gameWindowRenderer, this->defaultFont, Convert(L"あ"));
 }
 
 bool Game::IsWindowInitialized() const {
@@ -194,7 +194,7 @@ void Game::Update() {
 	//Updates the game. 
 
 	//Using Draw class object to update
-	this->drawSystem->Update();
+	//this->drawSystem->Update();
 
 	//(TEMP): Updates the Cartesian position using Isometric coordinates.
 	this->position += CreateIsometricPosition(this->velocity, this->currentUpOrientation) * 0.1f;
@@ -218,7 +218,7 @@ void Game::Render() {
 	//SDL_RenderCopy(this->gameWindowRenderer, this->mainTexture, nullptr, nullptr); //nullptr: Use defaults.
 
 	//Using Draw class object to render
-	this->drawSystem->Render();
+	//this->drawSystem->Render();
 	this->block->Render();
 
 	////For testing, we draw the fonts
@@ -252,7 +252,17 @@ void Game::HandleEvent() {
 				break;
 			}
 			case SDL_KEYDOWN: {
-				if (!gameWindowEvent.key.repeat) {
+				if (gameWindowEvent.key.keysym.sym == SDLK_BACKSPACE) {
+					//Handle backspace
+					if (this->inputString.size() > 0) {
+						this->inputString.pop_back();
+						this->shouldInvalidateInputString = true;
+					}
+				}
+				else if (gameWindowEvent.key.keysym.sym >= SDLK_a && gameWindowEvent.key.keysym.sym <= SDLK_z) {
+					std::cout << "Hit " << gameWindowEvent.key.keysym.sym << std::endl;
+				}
+				else if (!gameWindowEvent.key.repeat) {
 					this->inputs[gameWindowEvent.key.keysym.scancode] = true;
 				}
 				break; 
