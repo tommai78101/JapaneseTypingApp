@@ -39,6 +39,9 @@
     <ClCompile Include="game\block.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="game\input.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\game.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="game\block.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\input.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
   </ItemGroup>

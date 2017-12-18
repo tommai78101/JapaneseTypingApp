@@ -33,6 +33,8 @@ Game::Game(int newWidth = 400, int newHeight = 400) : gameWindow(nullptr), gameW
 		}
 		throw std::exception("No fonts set.");
 	}
+
+	this->inputSystem = new Input(this);
 }
 
 Game::~Game() {
@@ -60,14 +62,18 @@ Game::~Game() {
 	TTF_CloseFont(this->defaultFont);
 
 	//Non-SDL objects
-	//if (this->drawSystem) {
-	//	delete this->drawSystem;
-	//	this->drawSystem = nullptr;
-	//}
 	if (this->block) {
 		delete this->block;
 		this->block = nullptr;
 	}
+	if (this->inputSystem) {
+		delete this->inputSystem;
+		this->inputSystem = nullptr;
+	}
+	//if (this->drawSystem) {
+	//	delete this->drawSystem;
+	//	this->drawSystem = nullptr;
+	//}
 
 	//SDL library
 	TTF_Quit();				//SDL_ttf
@@ -143,7 +149,8 @@ void Game::Initialize(std::string title) {
 
 	//Non-SDL objects initialization.
 	//this->drawSystem = new Draw(this, 1.0f);
-	this->block = new Block(this->gameWindowRenderer, this->defaultFont, Convert(L"あ"));
+	//this->block = new Block(this->gameWindowRenderer, this->defaultFont, Convert(L"あ"));
+	this->block = new Block(this->gameWindowRenderer, this->defaultFont, u8"あ");
 }
 
 bool Game::IsWindowInitialized() const {
@@ -261,6 +268,11 @@ void Game::HandleEvent() {
 				}
 				else if (gameWindowEvent.key.keysym.sym >= SDLK_a && gameWindowEvent.key.keysym.sym <= SDLK_z) {
 					std::cout << "Hit " << gameWindowEvent.key.keysym.sym << std::endl;
+					this->inputSystem->HandleValidInputs(gameWindowEvent.key.keysym.sym);
+				}
+				else if (gameWindowEvent.key.keysym.sym == SDLK_RETURN) {
+					//Enter key to confirm the inputs.
+					this->inputSystem->ConfirmToken();
 				}
 				else if (!gameWindowEvent.key.repeat) {
 					this->inputs[gameWindowEvent.key.keysym.scancode] = true;
@@ -363,4 +375,12 @@ void Game::HandleInput() {
 	if (this->inputs[SDL_SCANCODE_RIGHT]) {
 		++this->velocity.x;
 	}
+}
+
+Input* Game::GetInput() {
+	return this->inputSystem;
+}
+
+Block* Game::GetBlock() {
+	return this->block;
 }

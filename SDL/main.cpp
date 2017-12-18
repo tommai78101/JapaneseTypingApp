@@ -1,4 +1,4 @@
-#include "game/game.h"
+#include "game/common.h"
 
 #if _WIN32
 #  undef main

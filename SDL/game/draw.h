@@ -8,9 +8,7 @@
 //TODO(Thompson): In Game class, have the Game class masize_tain a list of objects to pass to the Draw class, and update the objects individually as needed.
 //Draw class should then iterate through the list of updated objects, and render them individually.
 
-#include <SDL.h>
-
-#include "game.h"
+#include "common.h"
 
 class Game;
 

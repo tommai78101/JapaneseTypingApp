@@ -1,11 +1,9 @@
 ﻿#ifndef GAME_H_
 #	define GAME_H_
 
-#include "../game/common.h"
-#include "../game/draw.h"
-#include "../game/block.h"
+#include "common.h"
 
-class Draw;
+class Input;
 class Block;
 
 class Game {
@@ -45,6 +43,7 @@ protected:
 
 	//Subcomponents
 	//Draw* drawSystem;
+	Input* inputSystem;
 
 	//Others
 	Block* block;
@@ -79,6 +78,9 @@ public:
 
 	void SetPixel(size_t x, size_t y, uint32_t color);
 	uint32_t GetPixel(size_t x, size_t y);
+
+	Input* GetInput();
+	Block* GetBlock();
 
 	void Clear();
 };

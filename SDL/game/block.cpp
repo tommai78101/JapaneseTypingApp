@@ -1,7 +1,23 @@
 ﻿#include "block.h"
 
-Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, Uint16* str) {
-	this->blockSurface = SDLHelper_CreateSurface(this->blockSize, this->blockSize, 32);
+//Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, Uint16* str) {
+//	this->blockSurface = SDLHelper_CreateSurface(this->BlockSize, this->BlockSize, 32);
+//
+//	//Block class properties
+//	this->pixels = this->blockSurface->pixels;
+//	this->gameRenderer = gameRenderer;
+//	this->blockTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->blockSurface);
+//	this->positionX = 0;
+//	this->positionY = 0;
+//	this->color = {};
+//	TTF_SizeUNICODE(font, str, &this->characterWidth, &this->characterHeight);
+//	this->glyph = TTF_RenderUNICODE_Solid(font, str, this->color);
+//	//TTF_RenderUTF8_Solid(font, L"い", this->color);
+//	this->glyphTexture = SDL_CreateTextureFromSurface(gameRenderer, this->glyph);
+//}
+
+Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, char* str) {
+	this->blockSurface = SDLHelper_CreateSurface(this->BlockSize, this->BlockSize, 32);
 
 	//Block class properties
 	this->pixels = this->blockSurface->pixels;
@@ -10,9 +26,8 @@ Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, Uint16* str) {
 	this->positionX = 0;
 	this->positionY = 0;
 	this->color = {};
-	TTF_SizeUNICODE(font, str, &this->characterWidth, &this->characterHeight);
-	this->glyph = TTF_RenderUNICODE_Solid(font, str, this->color);
-	this->glyphTexture = SDL_CreateTextureFromSurface(gameRenderer, this->glyph);
+	this->font = font;
+	this->ReplaceGlyph(str);
 }
 
 Block::~Block() {
@@ -58,22 +73,34 @@ void Block::Render() {
 	SDL_Rect r = {
 		this->positionX,			//absolute left
 		this->positionY,			//absolute top
-		Block::blockSize,			//width
-		Block::blockSize			//height
+		Block::BlockSize,			//width
+		Block::BlockSize			//height
 	};
 	SDL_RenderDrawRect(this->gameRenderer, &r);
 
 	//Always reset the color after use.
 	SDL_SetRenderDrawColor(this->gameRenderer, 255, 255, 255, 255);
 
-	SDL_Rect destination = {this->positionX, this->positionY, this->blockSize, this->blockSize};
+	SDL_Rect destination = {this->positionX, this->positionY, this->BlockSize, this->BlockSize};
 	SDL_RenderCopy(this->gameRenderer, this->blockTexture, nullptr, &destination);
 
 	//Get paddings in order to center align the text in the rectangle.
-	int paddingWidth = std::abs(this->blockSize - this->characterWidth) / 2;
-	int paddingHeight = std::abs(this->blockSize - this->characterHeight) / 2;
+	int paddingWidth = std::abs(this->BlockSize - this->characterWidth) / 2;
+	int paddingHeight = std::abs(this->BlockSize - this->characterHeight) / 2;
 
 	//SDL_Rect fontDestination = { topLeftX + paddingWidth, topLeftY + paddingHeight, bottomRightX - paddingWidth, bottomRightY - paddingHeight };
 	SDL_Rect fontDestination = { this->positionX + paddingWidth, this->positionY + paddingHeight, this->characterWidth, this->characterHeight };
 	SDL_RenderCopy(this->gameRenderer, this->glyphTexture, nullptr, &fontDestination);
+}
+
+void Block::ReplaceGlyph(char* str) {
+	if (this->glyph) {
+		SDL_FreeSurface(this->glyph);
+	}
+	if (this->glyphTexture) {
+		SDL_DestroyTexture(this->glyphTexture);
+	}
+	TTF_SizeUTF8(this->font, str, &this->characterWidth, &this->characterHeight);
+	this->glyph = TTF_RenderUTF8_Solid(this->font, str, this->color);
+	this->glyphTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->glyph);
 }

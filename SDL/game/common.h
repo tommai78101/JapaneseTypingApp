@@ -21,6 +21,7 @@
 #include <cassert>
 #include <sstream>
 #include <locale>
+#include <vector>
 
 #ifdef _WIN32
 #	include <Windows.h>
@@ -50,6 +51,12 @@ enum UpOrientation {
 };
 
 //Helper functions
+
+static inline bool IsLittleEndian() {
+	uint16_t x = 0x0001;
+	auto p = reinterpret_cast<uint8_t*>(&x);
+	return *p != 0;
+}
 
 static inline SDL_Surface* SDLHelper_CreateSurface(int width, int height, int depth) {
 	/* SDL_CreateRGBSurface parameters: (Left -> Right)
@@ -96,8 +103,12 @@ static bool GetCharacterSize(wchar_t* LString, TTF_Font* font, int* outWidth, in
 }
 
 static inline Uint16* Convert(wchar_t LString[]) {
-	//THIS WILL BREAK SOMEDAY IN THE FUTURE.
-	return reinterpret_cast<Uint16*>(&(LString[0]));
+	//THIS IS ALREADY BROKEN FOR LINUX / MAC.
+	//wchar_t is defined as 32 bits on Linux/Mac, wchar_t is defined as 16 bits on Windows.
+	//if (sizeof(wchar_t) == 2) {
+		//16 bits
+		return reinterpret_cast<Uint16*>(&(LString[0]));
+	//}
 }
 
 //Vector2D stuffs
@@ -244,5 +255,11 @@ typedef struct VectorList {
 } VectorList;
 
 //End Vector
+
+//C++ class headers.
+#include "draw.h"
+#include "block.h"
+#include "input.h"
+#include "game.h"
 
 #endif
