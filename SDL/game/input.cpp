@@ -191,16 +191,24 @@ void InitializeGlyphMap(std::map<std::vector<SDL_Keycode>, char*>& glyphMap) {
 	//Combinations not from the basic Hiragana Table, basic Katakana Table, and the modifiers
 
 	/*
+	Also check the Microsoft Japanese IME template mappings. 
+	Contains the actual input methods for all characters.
 	ぁ: xa
+	あ: a
 	ぃ: xi
+	い: i
 	いぇ: ye
 	ぅ: xu
+	う: u
 	うぁ: wha
 	うぃ: whi
 	うぇ: whe
 	うぉ: who
 	ぇ: xe
+	え: e
 	ぉ: xo
+	お: o
+	か: ka
 	が: ga
 	き: ki
 	きゃ: kya
@@ -210,15 +218,21 @@ void InitializeGlyphMap(std::map<std::vector<SDL_Keycode>, char*>& glyphMap) {
 	ぎゃ: gya
 	ぎゅ: gyu
 	ぎょ: gyo
+	く: ku
 	ぐ: gu
 	ぐぁ: qwa
 	ぐぃ: gwi
 	ぐぅ: gwu
 	ぐぇ: gwe
 	ぐぉ: gwo
+	け: ke
 	げ: ge
+	こ: ko
 	ご: go
+	さ: sa
 	ざ: za
+	し: shi, si
+	し: shi, si
 	しぃ: syi
 	しぇ: sye, she
 	しぇ: sye, she
@@ -241,14 +255,18 @@ void InitializeGlyphMap(std::map<std::vector<SDL_Keycode>, char*>& glyphMap) {
 	じょ: jyo, jo, zyo
 	じょ: jyo, jo, zyo
 	じょ: jyo, jo, zyo
+	す: su
 	すぁ: swa
 	すぃ: swi
 	すぅ: swu
 	すぇ: swe
 	すぉ: swo
 	ず: zu
+	せ: se
 	ぜ: ze
+	そ: so
 	ぞ: zo
+	た: ta
 	だ: da
 	ち: ti, chi
 	ち: ti, chi
@@ -403,6 +421,7 @@ void InitializeGlyphMap(std::map<std::vector<SDL_Keycode>, char*>& glyphMap) {
 	ゔょ: vyo
 	ゕ: xka
 	ゖ: xke
+	ー: - 
 	*/
 }
 
