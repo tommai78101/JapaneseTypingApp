@@ -10,33 +10,84 @@ void InitializeGlyphMap(std::map<std::vector<SDL_Keycode>, char*>& glyphMap) {
 	//Note(asperatology): There may be more than one method of typing the characters
 	//out, therefore, there may be multiple entries for one glyph.
 	//Glyphs may be 2 characters long.
+	//Big sized glyphs go on top
+	//Small sized glyphs go on bottom
+	//Sorted by "hiragana order"
+
 	//Hiragana
 
 	//あ
 	InsertGlyph(glyphMap, { SDLK_a }, u8"あ");
+	InsertGlyph(glyphMap, { SDLK_l, SDLK_a }, u8"ぁ");
+	InsertGlyph(glyphMap, { SDLK_x, SDLK_a }, u8"ぁ");
 
 	//い
 	InsertGlyph(glyphMap, { SDLK_i }, u8"い");
+	InsertGlyph(glyphMap, { SDLK_l, SDLK_i }, u8"ぃ");
+	InsertGlyph(glyphMap, { SDLK_l, SDLK_y, SDLK_i }, u8"ぃ");
+	InsertGlyph(glyphMap, { SDLK_x, SDLK_i }, u8"ぃ");
+	InsertGlyph(glyphMap, { SDLK_x, SDLK_y, SDLK_i }, u8"ぃ");
+	InsertGlyph(glyphMap, { SDLK_y, SDLK_i }, u8"い");
+	InsertGlyph(glyphMap, { SDLK_y, SDLK_e }, u8"いぇ");
 
 	//う
 	InsertGlyph(glyphMap, { SDLK_u }, u8"う");
+	InsertGlyph(glyphMap, { SDLK_w, SDLK_h, SDLK_u }, u8"う");
+	InsertGlyph(glyphMap, { SDLK_w, SDLK_u }, u8"う");
+	InsertGlyph(glyphMap, { SDLK_l, SDLK_u }, u8"ぅ");
+	InsertGlyph(glyphMap, { SDLK_x, SDLK_u }, u8"ぅ");
+	InsertGlyph(glyphMap, { SDLK_w, SDLK_h, SDLK_a }, u8"うぁ");
+	InsertGlyph(glyphMap, { SDLK_w, SDLK_h, SDLK_i }, u8"うぃ");
+	InsertGlyph(glyphMap, { SDLK_w, SDLK_i }, u8"うぃ");
+	InsertGlyph(glyphMap, { SDLK_w, SDLK_e }, u8"うぇ");
+	InsertGlyph(glyphMap, { SDLK_w, SDLK_h, SDLK_e }, u8"うぇ");
+	InsertGlyph(glyphMap, { SDLK_w, SDLK_h, SDLK_o }, u8"うぉ");
 
 	//え
 	InsertGlyph(glyphMap, { SDLK_e }, u8"え");
+	InsertGlyph(glyphMap, { SDLK_l, SDLK_e }, u8"ぇ");
+	InsertGlyph(glyphMap, { SDLK_l, SDLK_y, SDLK_e }, u8"ぇ");
+	InsertGlyph(glyphMap, { SDLK_x, SDLK_e }, u8"ぇ");
+	InsertGlyph(glyphMap, { SDLK_x, SDLK_y, SDLK_e }, u8"ぇ");
 
 	//お
 	InsertGlyph(glyphMap, { SDLK_o }, u8"お");
+	InsertGlyph(glyphMap, { SDLK_l, SDLK_o }, u8"ぉ");
+	InsertGlyph(glyphMap, { SDLK_x, SDLK_o }, u8"ぉ");
 
 	//------
 
 	//か
+	InsertGlyph(glyphMap, { SDLK_c, SDLK_a }, u8"か");
 	InsertGlyph(glyphMap, { SDLK_k, SDLK_a }, u8"か");
 
 	//き
 	InsertGlyph(glyphMap, { SDLK_k, SDLK_i }, u8"き");
+	InsertGlyph(glyphMap, { SDLK_k, SDLK_y, SDLK_i }, u8"きぃ");
+	InsertGlyph(glyphMap, { SDLK_k, SDLK_y, SDLK_e }, u8"きぇ");
+	InsertGlyph(glyphMap, { SDLK_k, SDLK_y, SDLK_a }, u8"きゃ");
+	InsertGlyph(glyphMap, { SDLK_k, SDLK_y, SDLK_u }, u8"きゅ");
+	InsertGlyph(glyphMap, { SDLK_k, SDLK_y, SDLK_o }, u8"きょ");
 
 	//く
+	InsertGlyph(glyphMap, { SDLK_c, SDLK_u }, u8"く");
 	InsertGlyph(glyphMap, { SDLK_k, SDLK_u }, u8"く");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_u }, u8"く");
+	InsertGlyph(glyphMap, { SDLK_k, SDLK_w, SDLK_a }, u8"くぁ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_a }, u8"くぁ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_w, SDLK_a }, u8"くぁ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_i }, u8"くぃ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_w, SDLK_i }, u8"くぃ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_y, SDLK_i }, u8"くぃ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_w, SDLK_u }, u8"くぅ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_e }, u8"くぇ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_w, SDLK_e }, u8"くぇ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_y, SDLK_e }, u8"くぇ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_o }, u8"くぉ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_w, SDLK_o }, u8"くぉ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_y, SDLK_a }, u8"くゃ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_y, SDLK_u }, u8"くゅ");
+	InsertGlyph(glyphMap, { SDLK_q, SDLK_y, SDLK_o }, u8"くょ");
 
 	//け
 	InsertGlyph(glyphMap, { SDLK_k, SDLK_e }, u8"け");
@@ -181,6 +232,24 @@ void InitializeGlyphMap(std::map<std::vector<SDL_Keycode>, char*>& glyphMap) {
 
 	//------
 	//Modifiers - Hiragana
+	//が
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_a }, u8"が");
+
+	//ぎ
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_i }, u8"ぎ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_y, SDLK_i }, u8"ぎぃ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_y, SDLK_e }, u8"ぎぇ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_y, SDLK_a }, u8"ぎゃ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_y, SDLK_u }, u8"ぎゅ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_y, SDLK_o }, u8"ぎょ");
+
+	//ぐ
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_u }, u8"ぐ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_w, SDLK_a }, u8"ぐぁ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_w, SDLK_i }, u8"ぐぃ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_w, SDLK_u }, u8"ぐぅ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_w , SDLK_e }, u8"ぐぇ");
+	InsertGlyph(glyphMap, { SDLK_g, SDLK_w, SDLK_o }, u8"ぐぉ");
 
 	//------
 	//Katakana
@@ -193,8 +262,7 @@ void InitializeGlyphMap(std::map<std::vector<SDL_Keycode>, char*>& glyphMap) {
 	/*
 	Also check the Microsoft Japanese IME template mappings. 
 	Contains the actual input methods for all characters.
-	ぁ: xa
-	あ: a
+	
 	ぃ: xi
 	い: i
 	いぇ: ye
