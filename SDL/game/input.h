@@ -19,7 +19,7 @@ protected:
 	Game* game;
 
 public:
-	static const int MaxTokenSize = 3;
+	static const int MaxTokenSize = 4;
 
 	Input(Game* game);
 	~Input();
