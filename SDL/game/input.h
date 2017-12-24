@@ -15,7 +15,8 @@ class Game;
 class Input {
 protected:
 	std::vector<SDL_Keycode> tokens;
-	std::map<std::vector<SDL_Keycode>, char*> glyphMap;
+	//std::map<std::vector<SDL_Keycode>, char*> glyphMap;
+	Trie glyphMap;
 	Game* game;
 
 public:
@@ -26,6 +27,7 @@ public:
 
 	void HandleValidInputs(SDL_Keycode inputCode);
 	void ConfirmToken();
+	void ClearTokens();
 };
 
 #endif

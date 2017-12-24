@@ -1,12 +1,20 @@
 ﻿#include "input.h"
 
-void InsertGlyph(std::map<std::vector<SDL_Keycode>, char*>& glyphMap, std::initializer_list<SDL_Keycode> list, char* glyph) {
-	std::vector<SDL_Keycode> key;
+//void InsertGlyph(std::map<std::vector<SDL_Keycode>, char*>& glyphMap, std::initializer_list<SDL_Keycode> list, char* glyph) {
+//	std::vector<SDL_Keycode> key;
+//	key.insert(key.end(), list);
+//	glyphMap.insert(std::pair<std::vector<SDL_Keycode>, char*>(key, glyph));
+//}
+
+void InsertGlyph(Trie& trie, std::initializer_list<SDL_Keycode> list, char* glyph) {
+	static std::vector<SDL_Keycode> key;
 	key.insert(key.end(), list);
-	glyphMap.insert(std::pair<std::vector<SDL_Keycode>, char*>(key, glyph));
+	trie.Insert(key, glyph);
+	key.clear();
 }
 
-void InitializeGlyphMap(std::map<std::vector<SDL_Keycode>, char*>& glyphMap) {
+//void InitializeGlyphMap(std::map<std::vector<SDL_Keycode>, char*>& glyphMap) {
+void InitializeGlyphMap(Trie& glyphMap) {
 	//Note(asperatology): There may be more than one method of typing the characters
 	//out, therefore, there may be multiple entries for one glyph.
 	//Glyphs may be 2 characters long.
@@ -954,13 +962,33 @@ void Input::HandleValidInputs(SDL_Keycode inputCode) {
 
 void Input::ConfirmToken() {
 	//This is fired when the user presses the Enter key to confirm the entered inputs.
-	std::map<std::vector<SDL_Keycode>, char*>::iterator it;
-	if ((it = this->glyphMap.find(this->tokens)) != this->glyphMap.end()) {
-		//Found
-		this->game->GetBlock()->ReplaceGlyph(it->second);
+	//std::map<std::vector<SDL_Keycode>, char*>::iterator it;
+	//if ((it = this->glyphMap.find(this->tokens)) != this->glyphMap.end()) {
+	//	//Found
+	//	this->game->GetBlock()->ReplaceGlyph(it->second);
+	//}
+	//else {
+	//	std::cout << "Not found! " << std::endl;
+	//}
+
+	char* value = this->glyphMap.Get(this->tokens);
+	if (value) {
+		this->game->GetBlock()->ReplaceGlyph(value);
+		this->tokens.clear();
+	}
+	else if (this->tokens.size() >= Input::MaxTokenSize) {
+		this->tokens.clear();
+		std::cout << "Not found! Max tokens used." << std::endl;
 	}
 	else {
-		std::cout << "Not found! " << std::endl;
+		TrieNode* node = this->glyphMap.GetNode(this->tokens);
+		if ((!node) || (node && node->IsLeaf())) {
+			this->tokens.clear();
+			std::cout << "Not found! Incorrect input." << std::endl;
+		}
 	}
+}
+
+void Input::ClearTokens() {
 	this->tokens.clear();
 }

@@ -269,10 +269,12 @@ void Game::HandleEvent() {
 				else if (gameWindowEvent.key.keysym.sym >= SDLK_a && gameWindowEvent.key.keysym.sym <= SDLK_z) {
 					std::cout << "Hit " << gameWindowEvent.key.keysym.sym << std::endl;
 					this->inputSystem->HandleValidInputs(gameWindowEvent.key.keysym.sym);
+					this->inputSystem->ConfirmToken();
 				}
 				else if (gameWindowEvent.key.keysym.sym == SDLK_RETURN) {
 					//Enter key to confirm the inputs.
 					this->inputSystem->ConfirmToken();
+					this->inputSystem->ClearTokens();
 				}
 				else if (!gameWindowEvent.key.repeat) {
 					this->inputs[gameWindowEvent.key.keysym.scancode] = true;

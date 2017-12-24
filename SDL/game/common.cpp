@@ -22,95 +22,70 @@ Vector2D CreateIsometricPosition(Vector2D velocity, UpOrientation orientation) {
 	return result;
 }
 
-//Vector List functions
+//TrieNode functions
 
-void* VectorList::Get(size_t index) const {
-	assert(this->count);
-	assert(index < this->count);
-	return static_cast<char*>(this->items) + index * this->itemSize;
+TrieNode* TrieNode::SearchChild(SDL_Keycode& value) {
+	for (TrieNode* it : this->children) {
+		if (it->value == value) {
+			return it;
+		}
+	}
+	return nullptr;
 }
 
-void* VectorList::GetFront() const {
-	assert(this->count);
-	return this->Get(0);
-}
-
-void* VectorList::GetBack() const {
-	assert(this->count);
-	return this->Get(this->itemSize - 1);
-}
-
-void VectorList::Set(size_t index, void* item) {
-	assert(this->count);
-	assert(index < this->count);
-	std::memcpy(static_cast<char*>(this->items) + index * this->itemSize, item, this->itemSize);
-}
-
-void VectorList::Reserve(size_t size) {
-	if (this->capacity < size) {
-		this->items = std::realloc(this->items, size * this->count);
-		this->capacity = size;
+void TrieNode::Clear() {
+	for (TrieNode* it : this->children) {
+		it->Clear();
+		it->children.clear();
+		delete it;
 	}
 }
 
-void VectorList::Insert(size_t index, void* item) {
-	assert(index <= this->count);
-	if (this->capacity <= this->count) {
-		this->Reserve(2 * this->capacity);
+//End of TrieNode functions
+
+//Trie functions
+
+void Trie::Insert(std::vector<SDL_Keycode>& value, char* leafValue) {
+	TrieNode* iterator = this->root;
+	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
+		std::ptrdiff_t diff = std::distance(value.begin(), it);
+		SDL_Keycode child = *(value.begin() + diff);
+		TrieNode* node = iterator->SearchChild(child);
+		if (!node) {
+			node = new TrieNode();
+			node->value = child;
+			iterator->children.push_back(node);
+		}
+		iterator = node;
 	}
-	if (index < this->count) {
-		std::memmove(static_cast<char*>(this->items) + (index + 1) * this->itemSize, static_cast<char*>(this->items) + (index + 0) * this->itemSize, (this->count - index) * this->itemSize);
+	iterator->leafValue = leafValue;
+}
+
+bool Trie::Contains(std::vector<SDL_Keycode>& value) {
+	TrieNode* iterator = this->root;
+	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
+		iterator = iterator->SearchChild(*it);
 	}
-	this->count++;
-	this->Set(index, item);
+	return (iterator && iterator->IsLeaf());
 }
 
-void VectorList::PushBack(void* item) {
-	this->Insert(this->count, item);
-}
-
-void VectorList::PopBack() {
-	assert(this->count);
-	this->count--;
-}
-
-void VectorList::EraseRange(size_t first, size_t last) {
-	assert(first < this->count);
-	assert(last < this->count+1);
-	assert(first < last);
-
-	std::memmove(static_cast<char*>(this->items) + first * this->itemSize, static_cast<char*>(this->items) + last * this->itemSize, (this->count - last) * this->itemSize);
-	this->count -= (last - first);
-}
-
-void VectorList::Erase(size_t index) {
-	assert(index < this->count);
-	this->EraseRange(index, index + 1);
-}
-
-void VectorList::Clear() {
-	this->count = 0;
-}
-
-VectorList* CreateVectorList(size_t itemSize = 1) {
-	VectorList* self = static_cast<VectorList*>(std::malloc(sizeof(VectorList)));
-	assert(itemSize > 0);
-	if (!self) {
-		std::fprintf(stderr, "Line %d: No more memory for allocation.", __LINE__);
-		std::exit(EXIT_FAILURE);
-		return nullptr;
+char* Trie::Get(std::vector<SDL_Keycode>& value) {
+	TrieNode* iterator = this->root;
+	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
+		iterator = iterator->SearchChild(*it);
 	}
-	self->itemSize = itemSize;
-	self->count = 0;
-	self->capacity = 1;
-	self->items = std::malloc(self->itemSize * self->capacity);
-	return self;
+	if (iterator && iterator->IsLeaf()) {
+		return iterator->leafValue;
+	}
+	return nullptr;
 }
 
-void DeleteVectorList(VectorList* self) {
-	assert(self);
-	std::free(self->items);
-	std::free(self);
+TrieNode* Trie::GetNode(std::vector<SDL_Keycode>& value) {
+	TrieNode* iterator = this->root;
+	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
+		iterator = iterator->SearchChild(*it);
+	}
+	return iterator; //May be nullptr or valid TrieNode.
 }
 
-//End Vector List functions
+//End of Trie functions

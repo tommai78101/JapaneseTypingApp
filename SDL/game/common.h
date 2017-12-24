@@ -224,37 +224,36 @@ typedef union {
 
 //End Float Vector4D stuffs
 
-//Vector (dynamically allocated list)
+//Trie data structure
 
-struct VectorList;
+struct TrieNode {
+	std::vector<TrieNode*> children;
+	SDL_Keycode value;
+	char* leafValue = nullptr;
 
-VectorList* CreateVectorList(size_t itemSize);
-void DeleteVectorList(VectorList* self);
-
-typedef struct VectorList {
-	void* items;
-	size_t capacity;
-	size_t count;
-	size_t itemSize;
-
-	VectorList::~VectorList() {
-		DeleteVectorList(this);
+	bool IsLeaf() {
+		return this->children.empty();
 	}
 
-	void* Get(size_t index) const;
-	void* GetFront() const;
-	void* GetBack() const;
-	void Set(size_t index, void* item);
-	void Reserve(size_t size);
-	void Insert(size_t index, void* item);
-	void PushBack(void* item);
-	void PopBack();
-	void Erase(size_t index);
-	void EraseRange(size_t first, size_t last);
+	TrieNode* SearchChild(SDL_Keycode& value);
 	void Clear();
-} VectorList;
+};
 
-//End Vector
+struct Trie {
+	TrieNode* root = new TrieNode();
+
+	~Trie() {
+		this->root->Clear();
+		delete this->root;
+	}
+
+	void Insert(std::vector<SDL_Keycode>& value, char* leafValue);
+	bool Contains(std::vector<SDL_Keycode>& value);
+	char* Get(std::vector<SDL_Keycode>& value);
+	TrieNode* GetNode(std::vector<SDL_Keycode>& value);
+};
+
+//End Trie
 
 //C++ class headers.
 #include "draw.h"
