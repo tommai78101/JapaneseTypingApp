@@ -16,7 +16,9 @@ class Input {
 protected:
 	std::vector<SDL_Keycode> tokens;
 	//std::map<std::vector<SDL_Keycode>, char*> glyphMap;
-	Trie glyphMap;
+	Trie hiraganaTrie;
+	Trie katakanaTrie;
+	bool isHiraganaInput = true;
 	Game* game;
 
 public:
@@ -28,6 +30,12 @@ public:
 	void HandleValidInputs(SDL_Keycode inputCode);
 	void ConfirmToken();
 	void ClearTokens();
+
+	//Setters/Getters
+	void SwapInputType();
+	bool CheckInputType() const;
+
+	std::vector<SDL_Keycode>* GetTokens();
 };
 
 #endif

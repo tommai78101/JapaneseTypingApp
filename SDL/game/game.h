@@ -22,7 +22,6 @@ protected:
 	size_t scale;
 	size_t clearColor;
 	bool quitFlag;
-	bool shouldInvalidateInputString;
 	uint32_t* pixels;
 	std::wstring inputString;
 

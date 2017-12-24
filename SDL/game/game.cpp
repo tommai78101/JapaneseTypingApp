@@ -259,37 +259,46 @@ void Game::HandleEvent() {
 				break;
 			}
 			case SDL_KEYDOWN: {
-				if (gameWindowEvent.key.keysym.sym == SDLK_BACKSPACE) {
-					//Handle backspace
-					if (this->inputString.size() > 0) {
-						this->inputString.pop_back();
-						this->shouldInvalidateInputString = true;
+				if (!gameWindowEvent.key.repeat) {
+					if (gameWindowEvent.key.keysym.sym >= SDLK_a && gameWindowEvent.key.keysym.sym <= SDLK_z) {
+						std::cout << "Hit " << gameWindowEvent.key.keysym.sym << std::endl;
+						this->inputSystem->HandleValidInputs(gameWindowEvent.key.keysym.sym);
+						this->inputSystem->ConfirmToken();
+					}
+					else {
+						switch (gameWindowEvent.key.keysym.sym) {
+							case SDLK_BACKSPACE: {
+								//Handle backspace
+								std::vector<SDL_Keycode>* tokens = this->inputSystem->GetTokens();
+								if (!tokens->empty()) {
+									tokens->pop_back();
+								}
+								break;
+							}
+							case SDLK_RETURN:
+								//Enter key to confirm the inputs.
+								this->inputSystem->ConfirmToken();
+								break;
+							default:
+								this->inputs[gameWindowEvent.key.keysym.scancode] = true;
+								break;
+						}
 					}
 				}
-				else if (gameWindowEvent.key.keysym.sym >= SDLK_a && gameWindowEvent.key.keysym.sym <= SDLK_z) {
-					std::cout << "Hit " << gameWindowEvent.key.keysym.sym << std::endl;
-					this->inputSystem->HandleValidInputs(gameWindowEvent.key.keysym.sym);
-					this->inputSystem->ConfirmToken();
-				}
-				else if (gameWindowEvent.key.keysym.sym == SDLK_RETURN) {
-					//Enter key to confirm the inputs.
-					this->inputSystem->ConfirmToken();
-					this->inputSystem->ClearTokens();
-				}
-				else if (!gameWindowEvent.key.repeat) {
-					this->inputs[gameWindowEvent.key.keysym.scancode] = true;
-				}
-				break; 
+				break;
 			}
 			case SDL_KEYUP: {
-				if (!gameWindowEvent.key.repeat) {
-					this->inputs[gameWindowEvent.key.keysym.scancode] = false;
+				bool alt = this->inputs[SDL_SCANCODE_RALT] || this->inputs[SDL_SCANCODE_LALT];
+				bool ctrl = this->inputs[SDL_SCANCODE_RCTRL] || this->inputs[SDL_SCANCODE_LCTRL];
+				if (alt && ctrl) {
+					this->inputSystem->SwapInputType();
 				}
+				this->inputs[gameWindowEvent.key.keysym.scancode] = false;
 				break;
 			}
 		}
 	}
-	this->HandleInput();
+	//this->HandleInput();
 }
 
 void Game::QuitGame() {
@@ -347,24 +356,24 @@ void Game::Clear() {
 
 void Game::HandleInput() {
 	//This is the place to put tons of if...statements here.
-	if (this->inputs[SDL_SCANCODE_LSHIFT]) {
-		this->inputs[SDL_SCANCODE_LSHIFT] = false;
-		switch (this->currentUpOrientation) {
-			case UpOrientation::NORTHEAST: {
-				this->currentUpOrientation = UpOrientation::NORTH;
-				break;
-			}
-			default:
-			case UpOrientation::NORTH: {
-				this->currentUpOrientation = UpOrientation::NORTHWEST;
-				break;
-			}
-			case UpOrientation::NORTHWEST: {
-				this->currentUpOrientation = UpOrientation::NORTHEAST;
-				break;
-			}
-		}
-	}
+	//if (this->inputs[SDL_SCANCODE_LSHIFT]) {
+	//	this->inputs[SDL_SCANCODE_LSHIFT] = false;
+	//	switch (this->currentUpOrientation) {
+	//		case UpOrientation::NORTHEAST: {
+	//			this->currentUpOrientation = UpOrientation::NORTH;
+	//			break;
+	//		}
+	//		default:
+	//		case UpOrientation::NORTH: {
+	//			this->currentUpOrientation = UpOrientation::NORTHWEST;
+	//			break;
+	//		}
+	//		case UpOrientation::NORTHWEST: {
+	//			this->currentUpOrientation = UpOrientation::NORTHEAST;
+	//			break;
+	//		}
+	//	}
+	//}
 	if (this->inputs[SDL_SCANCODE_UP]) {
 		--this->velocity.y;
 	}
