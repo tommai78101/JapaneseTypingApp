@@ -208,7 +208,8 @@ void Game::Update() {
 	this->position += CreateIsometricPosition(this->velocity, this->currentUpOrientation) * 0.1f;
 	this->velocity = {};
 
-	this->block->Update(static_cast<int>(this->position.x), static_cast<int>(this->position.y));
+	//Reworking the new block.
+	//this->block->Update(static_cast<int>(this->position.x), static_cast<int>(this->position.y));
 }
 
 void Game::Render() {

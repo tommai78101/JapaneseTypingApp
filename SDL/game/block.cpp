@@ -66,9 +66,17 @@ void Block::Update(int newX, int newY) {
 }
 
 void Block::Render() {
-	//Drawing a rectangle (square). Requires that the values are strictly in order of the struct object's members.
-	//We set the draw color to blue.
+	//Get paddings in order to center align the text in the rectangle.
+	int paddingWidth = std::abs(this->BlockSize - this->characterWidth) / 2;
+	int paddingHeight = std::abs(this->BlockSize - this->characterHeight) / 2;
+
+	//First, we draw the font glyphs.
+	SDL_Rect fontDestination = { this->positionX + paddingWidth, this->positionY + paddingHeight, this->characterWidth, this->characterHeight };
+	SDL_RenderCopy(this->gameRenderer, this->glyphTexture, nullptr, &fontDestination);
+
+	//Second, we draw a rectangle (square), depending on the width of the character glyph.
 	SDL_SetRenderDrawColor(this->gameRenderer, 0, 0, 255, 255);
+
 	//Struct object initialization
 	SDL_Rect r = {
 		this->positionX,			//absolute left
@@ -83,14 +91,6 @@ void Block::Render() {
 
 	SDL_Rect destination = {this->positionX, this->positionY, this->BlockSize, this->BlockSize};
 	SDL_RenderCopy(this->gameRenderer, this->blockTexture, nullptr, &destination);
-
-	//Get paddings in order to center align the text in the rectangle.
-	int paddingWidth = std::abs(this->BlockSize - this->characterWidth) / 2;
-	int paddingHeight = std::abs(this->BlockSize - this->characterHeight) / 2;
-
-	//SDL_Rect fontDestination = { topLeftX + paddingWidth, topLeftY + paddingHeight, bottomRightX - paddingWidth, bottomRightY - paddingHeight };
-	SDL_Rect fontDestination = { this->positionX + paddingWidth, this->positionY + paddingHeight, this->characterWidth, this->characterHeight };
-	SDL_RenderCopy(this->gameRenderer, this->glyphTexture, nullptr, &fontDestination);
 }
 
 void Block::ReplaceGlyph(char* str) {

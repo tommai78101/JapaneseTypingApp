@@ -19,6 +19,8 @@ protected:
 	Trie hiraganaTrie;
 	Trie katakanaTrie;
 	bool isHiraganaInput = true;
+	bool isDirty = true;
+	bool isIncorrect = false;
 	Game* game;
 
 	//Inputbox properties
@@ -26,10 +28,15 @@ protected:
 	int boxHeight;
 	SDL_Rect inputboxPosition;
 	SDL_Rect tokensDestination;
-	SDL_Surface* tokenGlyph;
+	SDL_Rect glyphsDestination;
+	SDL_Surface* tokenSurface;
 	SDL_Texture* tokenTexture;
-	bool isDirty;
-	bool isIncorrect;
+	SDL_Surface* glyphSurface;
+	SDL_Texture* glyphTexture;
+
+	//Functions
+	void UpdateTokens();
+	void UpdateGlyphs(char* value);
 
 public:
 	static const int MaxTokenSize = 4;

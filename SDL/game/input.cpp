@@ -951,14 +951,12 @@ Input::Input(Game* game) {
 	this->boxWidth = static_cast<int>(game->GetWidth());
 	this->boxHeight = 60;
 	this->inputboxPosition = { 0, static_cast<int>(game->GetHeight()) - this->boxHeight, this->boxWidth, this->boxHeight };
-	this->isDirty = true;
-	this->isIncorrect = false;
 }
 
 Input::~Input() {
 	this->tokens.clear();
-	if (this->tokenGlyph) {
-		SDL_FreeSurface(this->tokenGlyph);
+	if (this->tokenSurface) {
+		SDL_FreeSurface(this->tokenSurface);
 	}
 	if (this->tokenTexture) {
 		SDL_DestroyTexture(this->tokenTexture);
@@ -983,7 +981,8 @@ void Input::ConfirmToken() {
 	Trie* glyphTrie = this->isHiraganaInput ? &(this->hiraganaTrie) : &(this->katakanaTrie);
 	char* value = glyphTrie->Get(this->tokens);
 	if (value) {
-		this->game->GetBlock()->ReplaceGlyph(value);
+		//this->game->GetBlock()->ReplaceGlyph(value);
+		this->UpdateGlyphs(value);
 		this->tokens.clear();
 	}
 	else if (this->tokens.size() >= Input::MaxTokenSize) {
@@ -1007,23 +1006,7 @@ void Input::ClearTokens() {
 
 void Input::Update() {
 	if (this->isDirty) {
-		//Drawing the tokens
-		int charWidth, charHeight;
-		TTF_SizeUTF8(this->game->GetFont(), this->tokenString.c_str(), &charWidth, &charHeight);
-
-		//Get paddings in order to center align the text in the rectangle.
-		int paddingWidth = std::abs(static_cast<int>(this->boxWidth - charWidth) / 2);
-		int paddingHeight = std::abs((this->boxHeight - charHeight) / 2);
-
-		if (this->tokenGlyph) {
-			SDL_FreeSurface(this->tokenGlyph);
-		}
-		if (this->tokenTexture) {
-			SDL_DestroyTexture(this->tokenTexture);
-		}
-		this->tokenGlyph = TTF_RenderUTF8_Solid(this->game->GetFont(), this->tokenString.c_str(), (this->isIncorrect ? SDL_COLOR_Red : SDL_COLOR_Black));
-		this->tokenTexture = SDL_CreateTextureFromSurface(this->game->GetGameRenderer(), tokenGlyph);
-		this->tokensDestination = { this->inputboxPosition.x + paddingWidth, this->inputboxPosition.y + paddingHeight, charWidth, charHeight };
+		this->UpdateTokens();
 	}
 
 	//Reinitialize flags.
@@ -1038,7 +1021,9 @@ void Input::Render() {
 	SDL_RenderDrawRect(this->game->GetGameRenderer(), &this->inputboxPosition);
 
 	//Rendering the tokens to the screen, somewhere along the bottom.
-	SDL_RenderCopy(this->game->GetGameRenderer(), tokenTexture, nullptr, &(this->tokensDestination));
+	SDL_SetRenderDrawColor(this->game->GetGameRenderer(), 0, 0, 0, 255);
+	SDL_RenderCopy(this->game->GetGameRenderer(), this->tokenTexture, nullptr, &(this->tokensDestination));
+	SDL_RenderCopy(this->game->GetGameRenderer(), this->glyphTexture, nullptr, &(this->glyphsDestination));
 }
 
 void Input::SwapInputType() {
@@ -1053,3 +1038,46 @@ std::vector<SDL_Keycode>* Input::GetTokens() {
 	return &(this->tokens);
 }
 
+//Start Private functions
+
+void Input::UpdateTokens() {
+	//Drawing the tokens
+	int charWidth, charHeight;
+	TTF_SizeUTF8(this->game->GetFont(), this->tokenString.c_str(), &charWidth, &charHeight);
+
+	//Get paddings in order to center align the text in the rectangle.
+	int paddingWidth = std::abs(static_cast<int>(this->boxWidth - charWidth) / 3);
+	int paddingHeight = std::abs((this->boxHeight - charHeight) / 2);
+
+	if (this->tokenSurface) {
+		SDL_FreeSurface(this->tokenSurface);
+	}
+	if (this->tokenTexture) {
+		SDL_DestroyTexture(this->tokenTexture);
+	}
+	this->tokenSurface = TTF_RenderUTF8_Solid(this->game->GetFont(), this->tokenString.c_str(), (this->isIncorrect ? SDL_COLOR_Red : SDL_COLOR_Black));
+	this->tokenTexture = SDL_CreateTextureFromSurface(this->game->GetGameRenderer(), tokenSurface);
+	this->tokensDestination = { this->inputboxPosition.x + paddingWidth, this->inputboxPosition.y + paddingHeight, charWidth, charHeight };
+}
+
+void Input::UpdateGlyphs(char* value) {
+	//Drawing the glyph
+	int charWidth, charHeight;
+	TTF_SizeUTF8(this->game->GetFont(), value, &charWidth, &charHeight);
+
+	//Get paddings in order to center align the text in the rectangle.
+	int paddingWidth = std::abs(static_cast<int>(this->boxWidth - charWidth) * 2 / 3);
+	int paddingHeight = std::abs((this->boxHeight - charHeight) / 2);
+
+	if (this->glyphSurface) {
+		SDL_FreeSurface(this->glyphSurface);
+	}
+	if (this->glyphTexture) {
+		SDL_DestroyTexture(this->glyphTexture);
+	}
+	this->glyphSurface = TTF_RenderUTF8_Solid(this->game->GetFont(), value, SDL_COLOR_Black);
+	this->glyphTexture = SDL_CreateTextureFromSurface(this->game->GetGameRenderer(), this->glyphSurface);
+	this->glyphsDestination = { this->inputboxPosition.x + paddingWidth, this->inputboxPosition.y + paddingHeight, charWidth, charHeight };
+}
+
+//End Private functions
