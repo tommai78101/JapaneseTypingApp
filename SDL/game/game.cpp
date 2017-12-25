@@ -199,6 +199,7 @@ void Game::GameLoop() {
 
 void Game::Update() {
 	//Updates the game. 
+	this->inputSystem->Update();
 
 	//Using Draw class object to update
 	//this->drawSystem->Update();
@@ -228,6 +229,8 @@ void Game::Render() {
 	//this->drawSystem->Render();
 	this->block->Render();
 
+	this->inputSystem->Render();
+
 	////For testing, we draw the fonts
 	//SDL_Rect destination;
 	//destination.x = 0;
@@ -239,6 +242,7 @@ void Game::Render() {
 	//SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceShaded, nullptr, &destination);
 	//destination.y += this->fontHeight + 10;
 	//SDL_RenderCopy(this->gameWindowRenderer, this->fontSurfaceBlended, nullptr, &destination);
+
 
 	//Update the renderer.
 	SDL_RenderPresent(this->gameWindowRenderer);
@@ -260,7 +264,7 @@ void Game::HandleEvent() {
 			}
 			case SDL_KEYDOWN: {
 				if (!gameWindowEvent.key.repeat) {
-					if (gameWindowEvent.key.keysym.sym >= SDLK_a && gameWindowEvent.key.keysym.sym <= SDLK_z) {
+					if ((gameWindowEvent.key.keysym.sym >= SDLK_a && gameWindowEvent.key.keysym.sym <= SDLK_z) || (gameWindowEvent.key.keysym.sym == SDLK_MINUS)) {
 						std::cout << "Hit " << gameWindowEvent.key.keysym.sym << std::endl;
 						this->inputSystem->HandleValidInputs(gameWindowEvent.key.keysym.sym);
 						this->inputSystem->ConfirmToken();
@@ -305,8 +309,21 @@ void Game::QuitGame() {
 	this->quitFlag = true;
 }
 
+void Game::Clear() {
+	SDL_Renderer* renderer = this->GetGameRenderer();
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+	SDL_RenderClear(renderer);
+	SDL_RenderPresent(renderer);
+}
+
+//Setters/Getters
+
 SDL_Renderer* Game::GetGameRenderer() const {
 	return this->gameWindowRenderer;
+}
+
+TTF_Font* Game::GetFont() const {
+	return this->defaultFont;
 }
 
 SDL_Texture* Game::GetTexture() const {
@@ -333,7 +350,6 @@ size_t Game::GetHeight() const {
 	return this->height;
 }
 
-
 void Game::SetPixel(size_t x, size_t y, uint32_t color) {
 	if (this->gameSurface) {
 		this->pixels[(y * this->gameSurface->w) + x] = color;
@@ -345,13 +361,6 @@ uint32_t Game::GetPixel(size_t x, size_t y) {
 		return this->pixels[(y * this->gameSurface->w) + x];
 	}
 	return -1;
-}
-
-void Game::Clear() {
-	SDL_Renderer* renderer = this->GetGameRenderer();
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-	SDL_RenderClear(renderer);
-	SDL_RenderPresent(renderer);
 }
 
 void Game::HandleInput() {

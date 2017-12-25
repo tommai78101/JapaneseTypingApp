@@ -60,6 +60,7 @@ public:
 	void HandleEvent();
 	void HandleInput();
 	void QuitGame();
+	void Clear();
 
 	virtual void Update();
 	virtual void Render();
@@ -68,6 +69,7 @@ public:
 	size_t GetWidth() const;
 	size_t GetHeight() const;
 	SDL_Renderer* GetGameRenderer() const;
+	TTF_Font* GetFont() const;
 
 	SDL_Texture* GetTexture() const;
 	void SetTexture(SDL_Texture* texture);
@@ -80,8 +82,6 @@ public:
 
 	Input* GetInput();
 	Block* GetBlock();
-
-	void Clear();
 };
 
 

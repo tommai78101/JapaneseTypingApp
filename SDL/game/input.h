@@ -15,11 +15,21 @@ class Game;
 class Input {
 protected:
 	std::vector<SDL_Keycode> tokens;
-	//std::map<std::vector<SDL_Keycode>, char*> glyphMap;
+	std::string tokenString;
 	Trie hiraganaTrie;
 	Trie katakanaTrie;
 	bool isHiraganaInput = true;
 	Game* game;
+
+	//Inputbox properties
+	int boxWidth;
+	int boxHeight;
+	SDL_Rect inputboxPosition;
+	SDL_Rect tokensDestination;
+	SDL_Surface* tokenGlyph;
+	SDL_Texture* tokenTexture;
+	bool isDirty;
+	bool isIncorrect;
 
 public:
 	static const int MaxTokenSize = 4;
@@ -30,6 +40,8 @@ public:
 	void HandleValidInputs(SDL_Keycode inputCode);
 	void ConfirmToken();
 	void ClearTokens();
+	void Update();
+	void Render();
 
 	//Setters/Getters
 	void SwapInputType();

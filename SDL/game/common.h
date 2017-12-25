@@ -255,6 +255,10 @@ struct Trie {
 
 //End Trie
 
+//Constants
+static const SDL_Color SDL_COLOR_Black = { };
+static const SDL_Color SDL_COLOR_Red = { 255, 0 };
+
 //C++ class headers.
 #include "draw.h"
 #include "block.h"

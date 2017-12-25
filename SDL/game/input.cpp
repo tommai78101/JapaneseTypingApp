@@ -1,5 +1,15 @@
 ﻿#include "input.h"
 
+//Helper functions
+
+void ConvertKeycodesToString(std::vector<SDL_Keycode>& codes, std::string& output) {
+	output.clear();
+	for (std::vector<SDL_Keycode>::iterator it = codes.begin(); it != codes.end(); it++) {
+		char diff = static_cast<char>((*it) - SDLK_a);
+		output.push_back('a' + diff);
+	}
+}
+
 void InsertGlyph(Trie& trie, std::initializer_list<SDL_Keycode> list, char* glyph) {
 	static std::vector<SDL_Keycode> key;
 	key.insert(key.end(), list);
@@ -925,6 +935,8 @@ void InitializeGlyphMap(Trie& hiraganaTrie, Trie& katakanaTrie) {
 	InsertGlyph(katakanaTrie, { SDLK_MINUS }, u8"ー");
 }
 
+//End Helper functions
+
 Input::Input(Game* game) {
 	//Initializes the token reader.
 	this->tokens.reserve(Input::MaxTokenSize);
@@ -934,11 +946,22 @@ Input::Input(Game* game) {
 
 	//Set a reference to Game object.
 	this->game = game;
+
+	//Initializes the input box properties
+	this->boxWidth = static_cast<int>(game->GetWidth());
+	this->boxHeight = 60;
+	this->inputboxPosition = { 0, static_cast<int>(game->GetHeight()) - this->boxHeight, this->boxWidth, this->boxHeight };
+	this->isDirty = true;
+	this->isIncorrect = false;
 }
 
 Input::~Input() {
-	while (!this->tokens.empty()) {
-		this->tokens.pop_back();
+	this->tokens.clear();
+	if (this->tokenGlyph) {
+		SDL_FreeSurface(this->tokenGlyph);
+	}
+	if (this->tokenTexture) {
+		SDL_DestroyTexture(this->tokenTexture);
 	}
 }
 
@@ -952,6 +975,7 @@ void Input::HandleValidInputs(SDL_Keycode inputCode) {
 			this->ConfirmToken();
 		}
 	}
+	ConvertKeycodesToString(this->tokens, this->tokenString);
 }
 
 void Input::ConfirmToken() {
@@ -971,12 +995,50 @@ void Input::ConfirmToken() {
 		if ((!node) || (node && node->IsLeaf())) {
 			this->tokens.clear();
 			std::cout << "Not found! Incorrect input." << std::endl;
+			this->isIncorrect = true;
 		}
 	}
+	this->isDirty = true;
 }
 
 void Input::ClearTokens() {
 	this->tokens.clear();
+}
+
+void Input::Update() {
+	if (this->isDirty) {
+		//Drawing the tokens
+		int charWidth, charHeight;
+		TTF_SizeUTF8(this->game->GetFont(), this->tokenString.c_str(), &charWidth, &charHeight);
+
+		//Get paddings in order to center align the text in the rectangle.
+		int paddingWidth = std::abs(static_cast<int>(this->boxWidth - charWidth) / 2);
+		int paddingHeight = std::abs((this->boxHeight - charHeight) / 2);
+
+		if (this->tokenGlyph) {
+			SDL_FreeSurface(this->tokenGlyph);
+		}
+		if (this->tokenTexture) {
+			SDL_DestroyTexture(this->tokenTexture);
+		}
+		this->tokenGlyph = TTF_RenderUTF8_Solid(this->game->GetFont(), this->tokenString.c_str(), (this->isIncorrect ? SDL_COLOR_Red : SDL_COLOR_Black));
+		this->tokenTexture = SDL_CreateTextureFromSurface(this->game->GetGameRenderer(), tokenGlyph);
+		this->tokensDestination = { this->inputboxPosition.x + paddingWidth, this->inputboxPosition.y + paddingHeight, charWidth, charHeight };
+	}
+
+	//Reinitialize flags.
+	this->isDirty = false;
+	this->isIncorrect = false;
+}
+
+void Input::Render() {
+	//Drawing a rectangle. Requires that the values are strictly in order of the struct object's members.
+	//We set the draw color to gray.
+	SDL_SetRenderDrawColor(this->game->GetGameRenderer(), 0x22, 0x22, 0x22, 255);
+	SDL_RenderDrawRect(this->game->GetGameRenderer(), &this->inputboxPosition);
+
+	//Rendering the tokens to the screen, somewhere along the bottom.
+	SDL_RenderCopy(this->game->GetGameRenderer(), tokenTexture, nullptr, &(this->tokensDestination));
 }
 
 void Input::SwapInputType() {
@@ -990,3 +1052,4 @@ bool Input::CheckInputType() const {
 std::vector<SDL_Keycode>* Input::GetTokens() {
 	return &(this->tokens);
 }
+
