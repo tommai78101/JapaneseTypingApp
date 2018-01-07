@@ -107,6 +107,10 @@ static bool GetCharacterSize(wchar_t* LString, TTF_Font* font, int* outWidth, in
 static void Convert_utf8_utf32(std::string& input, std::u32string& output);
 static void Convert_utf32_utf8(std::u32string& input, std::string& output);
 
+//Unicode Substrings
+static inline std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer);
+static inline std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer);
+
 //Vector2D stuffs
 
 struct Vector2D {

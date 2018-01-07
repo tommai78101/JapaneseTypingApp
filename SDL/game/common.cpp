@@ -146,6 +146,20 @@ static void Convert_utf32_utf8(std::u32string& input, std::string& output) {
 	}
 }
 
+static inline std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer) {
+	std::string returnValue = value.substr(0, value.find(firstContainer));
+	return returnValue;
+}
+
+static inline std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer) {
+	size_t containerLength = std::strlen(firstContainer);
+	size_t offset = value.find(firstContainer, 0);
+	size_t length = value.find(lastContainer, offset) - offset - containerLength;
+	size_t newOffset = offset + containerLength;
+	std::string returnValue = value.substr(newOffset, length);
+	return returnValue;
+}
+
 Vector2D CreateIsometricPosition(Vector2D velocity, UpOrientation orientation) {
 	Vector2D result = {};
 	switch (orientation) {
