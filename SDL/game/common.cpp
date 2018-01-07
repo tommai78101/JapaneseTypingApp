@@ -146,12 +146,12 @@ static void Convert_utf32_utf8(std::u32string& input, std::string& output) {
 	}
 }
 
-static inline std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer) {
+std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer) {
 	std::string returnValue = value.substr(0, value.find(firstContainer));
 	return returnValue;
 }
 
-static inline std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer) {
+std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer) {
 	size_t containerLength = std::strlen(firstContainer);
 	size_t offset = value.find(firstContainer, 0);
 	size_t length = value.find(lastContainer, offset) - offset - containerLength;
@@ -183,6 +183,10 @@ Vector2D CreateIsometricPosition(Vector2D velocity, UpOrientation orientation) {
 }
 
 //KeyCodeTrieNode functions
+
+bool KeyCodeTrieNode::IsLeaf() {
+	return this->children.empty();
+}
 
 KeyCodeTrieNode* KeyCodeTrieNode::SearchChild(SDL_Keycode& value) {
 	for (KeyCodeTrieNode* it : this->children) {
@@ -249,3 +253,29 @@ KeyCodeTrieNode* KeyCodeTrie::GetNode(std::vector<SDL_Keycode>& value) {
 }
 
 //End of KeyCodeTrie functions
+
+//VocabularyTrieNode functions
+
+bool VocabularyTrieNode::IsLeaf() {
+	return this->children.empty();
+}
+
+void VocabularyTrieNode::Clear() {
+	for (VocabularyTrieNode* it : this->children) {
+		it->Clear();
+		it->children.clear();
+		delete it;
+	}
+}
+
+VocabularyTrieNode* VocabularyTrieNode::SearchChild(std::string& value) {
+	for (VocabularyTrieNode* it : this->children) {
+		//See usage: http://www.cplusplus.com/reference/string/string/compare/
+		if (it->vocabulary.compare(value) == 0) {
+			return it;
+		}
+	}
+	return nullptr;
+}
+
+//End of VocabularyTrieNode functions

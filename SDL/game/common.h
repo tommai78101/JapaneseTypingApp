@@ -53,13 +53,13 @@ enum UpOrientation {
 
 //Helper functions
 
-static inline bool IsLittleEndian() {
+static bool IsLittleEndian() {
 	uint16_t x = 0x0001;
 	auto p = reinterpret_cast<uint8_t*>(&x);
 	return *p != 0;
 }
 
-static inline SDL_Surface* SDLHelper_CreateSurface(int width, int height, int depth) {
+static SDL_Surface* SDLHelper_CreateSurface(int width, int height, int depth) {
 	/* SDL_CreateRGBSurface parameters: (Left -> Right)
 		flags - the flags are unused and should be set to 0
 		width - the width of the surface
@@ -104,12 +104,12 @@ static bool GetCharacterSize(wchar_t* LString, TTF_Font* font, int* outWidth, in
 }
 
 //Unicode UTF-8 <-> UTF-32 support
-static void Convert_utf8_utf32(std::string& input, std::u32string& output);
-static void Convert_utf32_utf8(std::u32string& input, std::string& output);
+extern void Convert_utf8_utf32(std::string& input, std::u32string& output);
+extern void Convert_utf32_utf8(std::u32string& input, std::string& output);
 
 //Unicode Substrings
-static inline std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer);
-static inline std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer);
+extern std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer);
+extern std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer);
 
 //Vector2D stuffs
 
@@ -224,6 +224,8 @@ typedef union {
 
 //End Float Vector4D stuffs
 
+//Trie structures
+
 //KeycodeTrieNode
 //For use with KeyCodeTrie that maps SDL_Keycode to the leaf value.
 
@@ -232,12 +234,9 @@ struct KeyCodeTrieNode {
 	SDL_Keycode value;
 	char* leafValue = nullptr;
 
-	bool IsLeaf() {
-		return this->children.empty();
-	}
-
-	KeyCodeTrieNode* SearchChild(SDL_Keycode& value);
 	void Clear();
+	bool IsLeaf();
+	KeyCodeTrieNode* SearchChild(SDL_Keycode& value);
 };
 
 //KeyCodeTrie data structure
@@ -257,7 +256,21 @@ struct KeyCodeTrie {
 	KeyCodeTrieNode* GetNode(std::vector<SDL_Keycode>& value);
 };
 
-//End KeyCodeTrie
+struct VocabularyTrieNode {
+	std::vector<VocabularyTrieNode*> children;
+	std::string vocabulary; //Single kanji, hiragana, or katakana character.
+	std::string pronunciation; //Multiple hiragana or katakana characters.
+
+	void Clear();
+	bool IsLeaf();
+	VocabularyTrieNode* SearchChild(std::string& value);
+};
+
+struct VocabularyTrie {
+
+};
+
+//End Trie structures
 
 //Constants
 static const SDL_Color SDL_COLOR_Black = { };
