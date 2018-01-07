@@ -224,10 +224,11 @@ typedef union {
 
 //End Float Vector4D stuffs
 
-//KeyCodeTrie data structure
+//KeycodeTrieNode
+//For use with KeyCodeTrie that maps SDL_Keycode to the leaf value.
 
-struct TrieNode {
-	std::vector<TrieNode*> children;
+struct KeyCodeTrieNode {
+	std::vector<KeyCodeTrieNode*> children;
 	SDL_Keycode value;
 	char* leafValue = nullptr;
 
@@ -235,12 +236,15 @@ struct TrieNode {
 		return this->children.empty();
 	}
 
-	TrieNode* SearchChild(SDL_Keycode& value);
+	KeyCodeTrieNode* SearchChild(SDL_Keycode& value);
 	void Clear();
 };
 
+//KeyCodeTrie data structure
+//Maps SDL_Keycode inputs to a single UTF-8 hiragana / katakana for input.
+
 struct KeyCodeTrie {
-	TrieNode* root = new TrieNode();
+	KeyCodeTrieNode* root = new KeyCodeTrieNode();
 
 	~KeyCodeTrie() {
 		this->root->Clear();
@@ -250,7 +254,7 @@ struct KeyCodeTrie {
 	void Insert(std::vector<SDL_Keycode>& value, char* leafValue);
 	bool Contains(std::vector<SDL_Keycode>& value);
 	char* Get(std::vector<SDL_Keycode>& value);
-	TrieNode* GetNode(std::vector<SDL_Keycode>& value);
+	KeyCodeTrieNode* GetNode(std::vector<SDL_Keycode>& value);
 };
 
 //End KeyCodeTrie

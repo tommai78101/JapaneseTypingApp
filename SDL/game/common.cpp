@@ -182,10 +182,10 @@ Vector2D CreateIsometricPosition(Vector2D velocity, UpOrientation orientation) {
 	return result;
 }
 
-//TrieNode functions
+//KeyCodeTrieNode functions
 
-TrieNode* TrieNode::SearchChild(SDL_Keycode& value) {
-	for (TrieNode* it : this->children) {
+KeyCodeTrieNode* KeyCodeTrieNode::SearchChild(SDL_Keycode& value) {
+	for (KeyCodeTrieNode* it : this->children) {
 		if (it->value == value) {
 			return it;
 		}
@@ -193,26 +193,26 @@ TrieNode* TrieNode::SearchChild(SDL_Keycode& value) {
 	return nullptr;
 }
 
-void TrieNode::Clear() {
-	for (TrieNode* it : this->children) {
+void KeyCodeTrieNode::Clear() {
+	for (KeyCodeTrieNode* it : this->children) {
 		it->Clear();
 		it->children.clear();
 		delete it;
 	}
 }
 
-//End of TrieNode functions
+//End of KeyCodeTrieNode functions
 
 //KeyCodeTrie functions
 
 void KeyCodeTrie::Insert(std::vector<SDL_Keycode>& value, char* leafValue) {
-	TrieNode* iterator = this->root;
+	KeyCodeTrieNode* iterator = this->root;
 	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
 		std::ptrdiff_t diff = std::distance(value.begin(), it);
 		SDL_Keycode child = *(value.begin() + diff);
-		TrieNode* node = iterator->SearchChild(child);
+		KeyCodeTrieNode* node = iterator->SearchChild(child);
 		if (!node) {
-			node = new TrieNode();
+			node = new KeyCodeTrieNode();
 			node->value = child;
 			iterator->children.push_back(node);
 		}
@@ -222,7 +222,7 @@ void KeyCodeTrie::Insert(std::vector<SDL_Keycode>& value, char* leafValue) {
 }
 
 bool KeyCodeTrie::Contains(std::vector<SDL_Keycode>& value) {
-	TrieNode* iterator = this->root;
+	KeyCodeTrieNode* iterator = this->root;
 	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
 		iterator = iterator->SearchChild(*it);
 	}
@@ -230,7 +230,7 @@ bool KeyCodeTrie::Contains(std::vector<SDL_Keycode>& value) {
 }
 
 char* KeyCodeTrie::Get(std::vector<SDL_Keycode>& value) {
-	TrieNode* iterator = this->root;
+	KeyCodeTrieNode* iterator = this->root;
 	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
 		iterator = iterator->SearchChild(*it);
 	}
@@ -240,12 +240,12 @@ char* KeyCodeTrie::Get(std::vector<SDL_Keycode>& value) {
 	return nullptr;
 }
 
-TrieNode* KeyCodeTrie::GetNode(std::vector<SDL_Keycode>& value) {
-	TrieNode* iterator = this->root;
+KeyCodeTrieNode* KeyCodeTrie::GetNode(std::vector<SDL_Keycode>& value) {
+	KeyCodeTrieNode* iterator = this->root;
 	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
 		iterator = iterator->SearchChild(*it);
 	}
-	return iterator; //May be nullptr or valid TrieNode.
+	return iterator; //May be nullptr or valid KeyCodeTrieNode.
 }
 
 //End of KeyCodeTrie functions

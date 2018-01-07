@@ -990,7 +990,7 @@ void Input::ConfirmToken() {
 		std::cout << "Not found! Max tokens used." << std::endl;
 	}
 	else {
-		TrieNode* node = glyphTrie->GetNode(this->tokens);
+		KeyCodeTrieNode* node = glyphTrie->GetNode(this->tokens);
 		if ((!node) || (node && node->IsLeaf())) {
 			this->tokens.clear();
 			std::cout << "Not found! Incorrect input." << std::endl;
