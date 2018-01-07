@@ -271,7 +271,31 @@ void VocabularyTrieNode::Clear() {
 VocabularyTrieNode* VocabularyTrieNode::SearchChild(std::string& value) {
 	for (VocabularyTrieNode* it : this->children) {
 		//See usage: http://www.cplusplus.com/reference/string/string/compare/
-		if (it->vocabulary.compare(value) == 0) {
+		//"it->vocabulary" is "compared string"
+		//"value" is "comparing string".
+
+		int result = it->vocabulary.compare(value);
+		if (result > 0) {
+			//Greater than 0: 
+			//1) Value of the first character that doesn't match in "value" is greater than "it->vocabulary"
+			//2) "it->vocabulary" is longer than "value"
+
+			//See constructor usage: http://www.cplusplus.com/reference/string/string/string/
+			//Calling on copy constructor
+			std::string copyOfVocabulary(it->vocabulary);
+			copyOfVocabulary.resize(value.size());
+			result = copyOfVocabulary.compare(value);
+			if (result > 0) {
+				//Condition #1 matched, we skip it.
+				continue;
+			}
+			else if (result == 0) {
+				//Condition #2 matched, return the node.
+				return it;
+			}
+		}
+		else if (result == 0) {	
+			//Is 0: value is equal to it->vocabulary
 			return it;
 		}
 	}
@@ -279,3 +303,88 @@ VocabularyTrieNode* VocabularyTrieNode::SearchChild(std::string& value) {
 }
 
 //End of VocabularyTrieNode functions
+
+//VocabularyTrie functions
+
+void VocabularyTrie::Insert(char* value, char* leafValue) {
+	std::string newValue(value);
+	std::string newLeafValue(leafValue);
+	this->Insert(newValue, newLeafValue);
+}
+
+void VocabularyTrie::Insert(std::string& value, std::string leafValue) {
+	VocabularyTrieNode* iterator = this->root;
+	for (std::string::iterator it = value.begin(); iterator && it != value.end(); it++) {
+		std::ptrdiff_t diff = std::distance(value.begin(), it);
+		std::string child = value.substr(static_cast<size_t>(diff), value.size());
+		VocabularyTrieNode* node = iterator->SearchChild(child);
+		if (!node) {
+			node = new VocabularyTrieNode();
+			node->vocabulary = child;
+			iterator->children.push_back(node);
+		}
+		iterator = node;
+	}
+	iterator->pronunciation = leafValue;
+}
+
+bool VocabularyTrie::Contains(char* value) {
+	std::string newValue(value);
+	return this->Contains(newValue);
+}
+
+bool VocabularyTrie::Contains(std::string& value) {
+	VocabularyTrieNode* iterator = this->root;
+	VocabularyTrieNode* result;
+	for (int i = 0; i < value.size(); i++) {
+		std::string copyOfValue(value, i);
+		result = iterator->SearchChild(copyOfValue);
+		if (result) {
+			iterator = result;
+		}
+	}
+	return (iterator && iterator->IsLeaf());
+}
+
+std::string VocabularyTrie::Get(char* value) {
+	std::string newValue(value);
+	return this->Get(newValue);
+}
+
+std::string VocabularyTrie::Get(std::string& value) {
+	VocabularyTrieNode* iterator = this->root;
+	VocabularyTrieNode* result;
+	for (int i = 0; i < value.size(); i++) {
+		std::string copyOfValue(value, i);
+		result = iterator->SearchChild(copyOfValue);
+		if (result) {
+			iterator = result;
+		}
+	}
+	if (iterator && iterator->IsLeaf()) {
+		return iterator->pronunciation;
+	}
+	return nullptr;
+}
+
+VocabularyTrieNode* VocabularyTrie::GetNode(char* value) {
+	std::string newValue(value);
+	return this->GetNode(newValue);
+}
+
+VocabularyTrieNode* VocabularyTrie::GetNode(std::string& value) {
+	VocabularyTrieNode* iterator = this->root;
+	VocabularyTrieNode* result;
+	for (int i = 0; i < value.size(); i++) {
+		std::string copyOfValue(value, i);
+		result = iterator->SearchChild(copyOfValue);
+		if (result) {
+			iterator = result;
+		}
+	}
+	if (iterator && iterator->IsLeaf())
+		return iterator;
+	return nullptr;
+}
+
+//End of VocabularyTrie functions

@@ -256,14 +256,22 @@ struct KeyCodeTrie {
 	KeyCodeTrieNode* GetNode(std::vector<SDL_Keycode>& value);
 };
 
-struct VocabularyTrieNode {
-	std::vector<VocabularyTrieNode*> children;
-	std::string vocabulary; //Single kanji, hiragana, or katakana character.
-	std::string pronunciation; //Multiple hiragana or katakana characters.
+struct VocabularyTrie {
+	VocabularyTrieNode* root = new VocabularyTrieNode();
 
-	void Clear();
-	bool IsLeaf();
-	VocabularyTrieNode* SearchChild(std::string& value);
+	~VocabularyTrie() {
+		this->root->Clear();
+		delete this->root;
+	}
+
+	void Insert(std::string& value, std::string leafValue);
+	void Insert(char* value, char* leafValue);
+	bool Contains(std::string& value);
+	bool Contains(char* value);
+	std::string Get(std::string& value);
+	std::string Get(char* value);
+	VocabularyTrieNode* GetNode(std::string& value);
+	VocabularyTrieNode* GetNode(char* value);
 };
 
 struct VocabularyTrie {
