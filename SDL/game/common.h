@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <cassert>
 #include <sstream>
+#include <fstream>
 #include <locale>
 #include <vector>
 
@@ -102,14 +103,9 @@ static bool GetCharacterSize(wchar_t* LString, TTF_Font* font, int* outWidth, in
 	}
 }
 
-static inline Uint16* Convert(wchar_t LString[]) {
-	//THIS IS ALREADY BROKEN FOR LINUX / MAC.
-	//wchar_t is defined as 32 bits on Linux/Mac, wchar_t is defined as 16 bits on Windows.
-	//if (sizeof(wchar_t) == 2) {
-		//16 bits
-		return reinterpret_cast<Uint16*>(&(LString[0]));
-	//}
-}
+//Unicode UTF-8 <-> UTF-32 support
+static void Convert_utf8_utf32(std::string& input, std::u32string& output);
+static void Convert_utf32_utf8(std::u32string& input, std::string& output);
 
 //Vector2D stuffs
 
