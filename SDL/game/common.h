@@ -452,6 +452,7 @@ struct VocabularyTrieNode {
 
 struct VocabularyTrie {
 	VocabularyTrieNode* root = new VocabularyTrieNode();
+	unsigned int size = 0;
 
 	~VocabularyTrie() {
 		this->root->Clear();
@@ -473,6 +474,7 @@ struct VocabularyTrie {
 	VocabularyTrieNode* GetNode(std::u32string& value);
 	VocabularyTrieNode* GetNode(std::string& value);
 	VocabularyTrieNode* GetNode(char* value);
+	unsigned int GetSize();
 };
 
 //End VocabularyTrie

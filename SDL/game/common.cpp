@@ -180,6 +180,7 @@ void VocabularyTrie::Insert(std::u32string& value, std::u32string& leafValue, st
 	}
 	iterator->pronunciation = leafValue;
 	iterator->englishDefinition = meaning;
+	this->size++;
 }
 
 bool VocabularyTrie::Contains(std::string& value) {
@@ -284,6 +285,10 @@ VocabularyTrieNode* VocabularyTrie::GetNode(std::u32string& value) {
 	if (iterator && iterator->IsLeaf())
 		return iterator;
 	return nullptr;
+}
+
+unsigned int VocabularyTrie::GetSize() {
+	return this->size;
 }
 
 //End of VocabularyTrie functions
