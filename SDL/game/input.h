@@ -16,8 +16,8 @@ class Input {
 protected:
 	std::vector<SDL_Keycode> tokens;
 	std::string tokenString;
-	Trie hiraganaTrie;
-	Trie katakanaTrie;
+	KeyCodeTrie hiraganaTrie;
+	KeyCodeTrie katakanaTrie;
 	bool isHiraganaInput = true;
 	bool isDirty = true;
 	bool isIncorrect = false;

@@ -203,9 +203,9 @@ void TrieNode::Clear() {
 
 //End of TrieNode functions
 
-//Trie functions
+//KeyCodeTrie functions
 
-void Trie::Insert(std::vector<SDL_Keycode>& value, char* leafValue) {
+void KeyCodeTrie::Insert(std::vector<SDL_Keycode>& value, char* leafValue) {
 	TrieNode* iterator = this->root;
 	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
 		std::ptrdiff_t diff = std::distance(value.begin(), it);
@@ -221,7 +221,7 @@ void Trie::Insert(std::vector<SDL_Keycode>& value, char* leafValue) {
 	iterator->leafValue = leafValue;
 }
 
-bool Trie::Contains(std::vector<SDL_Keycode>& value) {
+bool KeyCodeTrie::Contains(std::vector<SDL_Keycode>& value) {
 	TrieNode* iterator = this->root;
 	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
 		iterator = iterator->SearchChild(*it);
@@ -229,7 +229,7 @@ bool Trie::Contains(std::vector<SDL_Keycode>& value) {
 	return (iterator && iterator->IsLeaf());
 }
 
-char* Trie::Get(std::vector<SDL_Keycode>& value) {
+char* KeyCodeTrie::Get(std::vector<SDL_Keycode>& value) {
 	TrieNode* iterator = this->root;
 	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
 		iterator = iterator->SearchChild(*it);
@@ -240,7 +240,7 @@ char* Trie::Get(std::vector<SDL_Keycode>& value) {
 	return nullptr;
 }
 
-TrieNode* Trie::GetNode(std::vector<SDL_Keycode>& value) {
+TrieNode* KeyCodeTrie::GetNode(std::vector<SDL_Keycode>& value) {
 	TrieNode* iterator = this->root;
 	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
 		iterator = iterator->SearchChild(*it);
@@ -248,4 +248,4 @@ TrieNode* Trie::GetNode(std::vector<SDL_Keycode>& value) {
 	return iterator; //May be nullptr or valid TrieNode.
 }
 
-//End of Trie functions
+//End of KeyCodeTrie functions

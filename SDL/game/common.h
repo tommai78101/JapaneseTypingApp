@@ -224,7 +224,7 @@ typedef union {
 
 //End Float Vector4D stuffs
 
-//Trie data structure
+//KeyCodeTrie data structure
 
 struct TrieNode {
 	std::vector<TrieNode*> children;
@@ -239,10 +239,10 @@ struct TrieNode {
 	void Clear();
 };
 
-struct Trie {
+struct KeyCodeTrie {
 	TrieNode* root = new TrieNode();
 
-	~Trie() {
+	~KeyCodeTrie() {
 		this->root->Clear();
 		delete this->root;
 	}
@@ -253,7 +253,7 @@ struct Trie {
 	TrieNode* GetNode(std::vector<SDL_Keycode>& value);
 };
 
-//End Trie
+//End KeyCodeTrie
 
 //Constants
 static const SDL_Color SDL_COLOR_Black = { };

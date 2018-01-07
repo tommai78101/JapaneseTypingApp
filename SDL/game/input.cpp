@@ -10,14 +10,14 @@ void ConvertKeycodesToString(std::vector<SDL_Keycode>& codes, std::string& outpu
 	}
 }
 
-void InsertGlyph(Trie& trie, std::initializer_list<SDL_Keycode> list, char* glyph) {
+void InsertGlyph(KeyCodeTrie& trie, std::initializer_list<SDL_Keycode> list, char* glyph) {
 	static std::vector<SDL_Keycode> key;
 	key.insert(key.end(), list);
 	trie.Insert(key, glyph);
 	key.clear();
 }
 
-void InitializeGlyphMap(Trie& hiraganaTrie, Trie& katakanaTrie) {
+void InitializeGlyphMap(KeyCodeTrie& hiraganaTrie, KeyCodeTrie& katakanaTrie) {
 	//Note(asperatology): There may be more than one method of typing the characters
 	//out, therefore, there may be multiple entries for one glyph.
 	//Glyphs may be 2 characters long.
@@ -978,7 +978,7 @@ void Input::HandleValidInputs(SDL_Keycode inputCode) {
 
 void Input::ConfirmToken() {
 	//This is fired when the user presses the Enter key to confirm the entered inputs.
-	Trie* glyphTrie = this->isHiraganaInput ? &(this->hiraganaTrie) : &(this->katakanaTrie);
+	KeyCodeTrie* glyphTrie = this->isHiraganaInput ? &(this->hiraganaTrie) : &(this->katakanaTrie);
 	char* value = glyphTrie->Get(this->tokens);
 	if (value) {
 		//this->game->GetBlock()->ReplaceGlyph(value);
