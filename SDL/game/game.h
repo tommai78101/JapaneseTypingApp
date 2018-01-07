@@ -46,6 +46,7 @@ protected:
 
 	//Others
 	Block* block;
+	VocabularyTrie kanjiTrie;
 	
 
 public:

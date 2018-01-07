@@ -30,8 +30,6 @@
 #	include <unistd.h>
 #endif
 
-typedef std::basic_string<Uint16, std::char_traits<Uint16>, std::allocator<Uint16>> u16string;
-
 //For anything using size_t, use size_t.
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 const size_t RED_MASK = 0xff000000;
@@ -53,6 +51,10 @@ enum UpOrientation {
 
 //Helper functions
 
+//Unicode Substrings
+extern std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer);
+extern std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer);
+
 static bool IsLittleEndian() {
 	uint16_t x = 0x0001;
 	auto p = reinterpret_cast<uint8_t*>(&x);
@@ -73,43 +75,218 @@ static SDL_Surface* SDLHelper_CreateSurface(int width, int height, int depth) {
 	return SDL_CreateRGBSurface(0, width, height, depth, RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
 }
 
-static bool CreateUnicodeTexture(wchar_t* LString, SDL_Renderer* renderer, TTF_Font* font, SDL_Color color, SDL_Surface** outputSurface, SDL_Texture** outputTexture) {
-	try {
-		std::wstring temp(LString);
-		u16string buffer(temp.begin(), temp.end());
-		*outputSurface = TTF_RenderUNICODE_Solid(font, buffer.c_str(), color);
-		*outputTexture = SDL_CreateTextureFromSurface(renderer, *outputSurface);
-		return true;
-	}
-	catch (std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		return false;
-	}
-}
-
-static bool GetCharacterSize(wchar_t* LString, TTF_Font* font, int* outWidth, int* outHeight) {
-	try {
-		std::wstring temp(LString);
-		u16string buffer(temp.begin(), temp.end());
-		if (TTF_SizeUNICODE(font, buffer.c_str(), outWidth, outHeight) == -1) {
-			std::cerr << "Wrong size of unicode text." << std::endl;
-			throw std::exception("Unicode text is of wrong size.");
+static void ParseLine(std::u32string& formattedLine, std::vector<std::u32string>& vocabulary, std::vector<std::u32string>& pronunciation, std::u32string& definition) {
+	//Custom string parser, suitable only for extracting information from the EDICT2 (UTF-8) file.
+	bool vocabularyExtracted = false;
+	bool pronunciationExtracted = false;
+	bool definitionExtracted = false;
+	bool pronunciationMarked = false;
+	bool definitionMarked = false;
+	std::u32string token;
+	for (int i = 0; i < formattedLine.size(); i++) {
+		if (!vocabularyExtracted) {
+			if (formattedLine[i] != U' ' && formattedLine[i + 1] != U'[') {
+				if (formattedLine[i] == U';') {
+					vocabulary.push_back(token);
+					token.clear();
+				}
+				else if (formattedLine[i] == U'(' && formattedLine[i+1] == U'i' && formattedLine[i+2] == U'K' && formattedLine[i+3] == U')') {
+					i += 3;
+				}
+				else {
+					token += formattedLine[i];
+				}
+			}
+			else {
+				vocabularyExtracted = true;
+				vocabulary.push_back(token);
+				token.clear();
+			}
 		}
-		return true;
-	}
-	catch (std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		return false;
+		else if (!pronunciationMarked) {
+			if (formattedLine[i] != U'[')
+				continue;
+			else
+				pronunciationMarked = true;
+		}
+		else if (!pronunciationExtracted) {
+			if (formattedLine[i] != U']') {
+				if (formattedLine[i] == U';') {
+					pronunciation.push_back(token);
+					token.clear();
+				}
+				else {
+					token += formattedLine[i];
+				}
+			}
+			else {
+				pronunciationExtracted = true;
+				pronunciation.push_back(token);
+				token.clear();
+			}
+		}
+		else if (!definitionMarked) {
+			if (formattedLine[i] != U'/')
+				continue;
+			else
+				definitionMarked = true;
+		}
+		else if (!definitionExtracted) {
+			if (formattedLine[i] == U'/' && formattedLine[i + 1] == U'E' && formattedLine[i + 2] == U'n' && formattedLine[i + 3] == U't' && formattedLine[i + 4] == U'L') {
+				definitionExtracted = true;
+				definition = token;
+				return;
+			}
+			else
+				token += formattedLine[i];
+		}
 	}
 }
 
 //Unicode UTF-8 <-> UTF-32 support
-extern void Convert_utf8_utf32(std::string& input, std::u32string& output);
-extern void Convert_utf32_utf8(std::u32string& input, std::string& output);
+static void Convert_utf8_utf32(std::string& input, std::u32string& output) {
+	const uint32_t UTF32Mask = 0x001fffff;
+	int i = 0;
+	output.clear();
+	while (1) {
+		uint8_t iterator = (uint8_t) input[i];
+		if (!iterator)
+			break;
+		if (iterator < 0x80) {
+			//1 codepoint
+			output += (char32_t) (UTF32Mask & iterator);
+			i++;
+		}
+		else if (iterator < 0xC0) {
+			//midstream identifier, invalid
+			i++;
+			continue;
+		}
+		else if (iterator < 0xE0) {
+			//2 codepoint
+			uint8_t firstPoint = (uint8_t) (input[i] & 0x1F);
+			uint8_t secondPoint = (uint8_t) (input[i + 1] & 0x3F);
+			if (!IsLittleEndian()) {
+				output += (char32_t) (UTF32Mask & ((secondPoint << 6) | firstPoint));
+			}
+			else {
+				output += (char32_t) (UTF32Mask & ((firstPoint << 6) | secondPoint));
+			}
+			i += 2;
+		}
+		else if (iterator < 0xF0) {
+			//3 codepoints
+			uint8_t firstPoint = (uint8_t) (input[i] & 0x0F);
+			uint8_t secondPoint = (uint8_t) (input[i + 1] & 0x3F);
+			uint8_t thirdPoint = (uint8_t) (input[i + 2] & 0x3F);
+			if (!IsLittleEndian()) {
+				output += (char32_t) (UTF32Mask & ((thirdPoint << 12) | (secondPoint << 6) | firstPoint));
+			}
+			else {
+				output += (char32_t) (UTF32Mask & ((firstPoint << 12) | (secondPoint << 6) | thirdPoint));
+			}
+			i += 3;
+		}
+		else if (iterator < 0xF8) {
+			//4 codepoints
+			uint8_t firstPoint = (uint8_t) (input[i] & 0x07);
+			uint8_t secondPoint = (uint8_t) (input[i + 1] & 0x3F);
+			uint8_t thirdPoint = (uint8_t) (input[i + 2] & 0x3F);
+			uint8_t fourthPoint = (uint8_t) (input[i + 3] & 0x3F);
+			if (!IsLittleEndian()) {
+				output += (char32_t) (UTF32Mask & ((fourthPoint << 18) | (thirdPoint << 12) | (secondPoint << 6) | firstPoint));
+			}
+			else {
+				output += (char32_t) (UTF32Mask & ((firstPoint << 18) | (secondPoint << 12) | (thirdPoint << 6) | fourthPoint));
+			}
+			i += 4;
+		}
+		else {
+			//Invalid everything else
+			i++;
+		}
+	}
+}
 
-//Unicode Substrings
-extern std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer);
-extern std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer);
+static void Convert_utf32_utf8(std::u32string& input, std::string& output) {
+	const uint8_t UTF8Midstream = 0x80;
+	const uint8_t UTF8MidstreamMask = 0x3f;
+	int i = 0;
+	output.clear();
+	while (1) {
+		uint32_t iterator = (uint32_t) input[i];
+		if (!iterator)
+			break;
+		if (iterator < 0x80) {
+			//U+0000..U+007F
+			output += (uint8_t) (0x7f & iterator);
+		}
+		else if (iterator < 0x800) {
+			//U+0080..U+07FF
+			uint8_t firstPoint = (uint8_t) (((0xDF << 6) & iterator) >> 6);
+			uint8_t secondPoint = (uint8_t) (0x3F & iterator);
+			if (!IsLittleEndian()) {
+				output += (uint8_t) (0xC0 | (0xDF & secondPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & firstPoint));
+			}
+			else {
+				output += (uint8_t) (0xC0 | (0xDF & firstPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
+			}
+		}
+		else if (iterator < 0xE000) {
+			//U+8000..U+D7FF (TUS 2.0)
+			uint8_t firstPoint = (uint8_t) (((0xF << 12) & iterator) >> 12);
+			uint8_t secondPoint = (uint8_t) (((0x3F << 6) & iterator) >> 6);
+			uint8_t thirdPoint = (uint8_t) (0x3F & iterator);
+			if (!IsLittleEndian()) {
+				output += (uint8_t) (0xE0 | (0x0F & thirdPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & firstPoint));
+			}
+			else {
+				output += (uint8_t) (0xE0 | (0x0F & firstPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & thirdPoint));
+			}
+		}
+		else if (iterator < 0x10000) {
+			//U+E000..U+FFFF (TUS 3.1)
+			uint8_t firstPoint = (uint8_t) (((0xF << 12) & iterator) >> 12);
+			uint8_t secondPoint = (uint8_t) (((0x3F << 6) & iterator) >> 6);
+			uint8_t thirdPoint = (uint8_t) (0x3F & iterator);
+			if (!IsLittleEndian()) {
+				output += (uint8_t) (0xE0 | (0x0F & thirdPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & firstPoint));
+			}
+			else {
+				output += (uint8_t) (0xE0 | (0x0F & firstPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & thirdPoint));
+			}
+		}
+		else if (iterator < 0x1FFFF) {
+			uint8_t firstPoint = (uint8_t) (((0x7 << 18) & iterator) >> 18);
+			uint8_t secondPoint = (uint8_t) (((0x3F << 12) & iterator) >> 12);
+			uint8_t thirdPoint = (uint8_t) (((0x3F << 6) & iterator) >> 6);
+			uint8_t fourthPoint = (uint8_t) (0x3F & iterator);
+			if (!IsLittleEndian()) {
+				output += (uint8_t) (0xE0 | (0x07 & fourthPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & thirdPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & firstPoint));
+			}
+			else {
+				output += (uint8_t) (0xE0 | (0x07 & firstPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & thirdPoint));
+				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & fourthPoint));
+			}
+		}
+		i++;
+	}
+}
 
 //Vector2D stuffs
 
@@ -256,6 +433,23 @@ struct KeyCodeTrie {
 	KeyCodeTrieNode* GetNode(std::vector<SDL_Keycode>& value);
 };
 
+//VocabularyTrieNode
+
+struct VocabularyTrieNode {
+	std::vector<VocabularyTrieNode*> children;
+	char32_t vocabulary; //Single kanji, hiragana, or katakana character.
+	std::u32string pronunciation; //Multiple hiragana or katakana characters.
+	std::u32string englishDefinition; //Contains English definition.
+
+	void Clear();
+	bool IsLeaf();
+	VocabularyTrieNode* SearchChild(char32_t& value);
+};
+
+//End of VocabularyTrieNode
+
+//VocabularyTrie
+
 struct VocabularyTrie {
 	VocabularyTrieNode* root = new VocabularyTrieNode();
 
@@ -264,19 +458,24 @@ struct VocabularyTrie {
 		delete this->root;
 	}
 
-	void Insert(std::string& value, std::string leafValue);
-	void Insert(char* value, char* leafValue);
+	void Insert(std::u32string& value, std::u32string& leafValue, std::u32string& definition);
+	void Insert(std::string& value, std::string& leafValue, std::string& definition);
+	void Insert(char* value, char* leafValue, char* definition);
+	bool Contains(std::u32string& value);
 	bool Contains(std::string& value);
 	bool Contains(char* value);
-	std::string Get(std::string& value);
-	std::string Get(char* value);
+	std::string GetPronunciation(std::u32string& value);
+	std::string GetPronunciation(std::string& value);
+	std::string GetPronunciation(char* value);
+	std::string GetDefinition(std::u32string& value);
+	std::string GetDefinition(std::string& value);
+	std::string GetDefinition(char* value);
+	VocabularyTrieNode* GetNode(std::u32string& value);
 	VocabularyTrieNode* GetNode(std::string& value);
 	VocabularyTrieNode* GetNode(char* value);
 };
 
-struct VocabularyTrie {
-
-};
+//End VocabularyTrie
 
 //End Trie structures
 

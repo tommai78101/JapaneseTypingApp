@@ -34,7 +34,41 @@ Game::Game(int newWidth = 400, int newHeight = 400) : gameWindow(nullptr), gameW
 		throw std::exception("No fonts set.");
 	}
 
+	//Input system initialization
 	this->inputSystem = new Input(this);
+
+	//File reading/writing (We're only going to read)
+	//We're only storing vocabularies that are 1 character long.
+	//It takes about 56 seconds for it to finish initializing.
+	std::ifstream edict2("dict/edict2u");
+	if (edict2.is_open() && edict2.good()) {
+		std::string buffer;
+		bool skipFirstLine = true;
+		size_t currentLine = 0;
+		while (std::getline(edict2, buffer)) {
+			currentLine++;
+			if (skipFirstLine) {
+				skipFirstLine = false;
+				continue;
+			}
+			std::u32string formattedLine, definition;
+			std::vector<std::u32string> vocabulary, pronunciation;
+			Convert_utf8_utf32(buffer, formattedLine);
+			ParseLine(formattedLine, vocabulary, pronunciation, definition);
+			size_t v = vocabulary.size() - 1;
+			size_t p = pronunciation.size() - 1;
+			for (; v >= 0 && p >= 0 && v < vocabulary.size() && p < pronunciation.size(); v--, p--) {
+				while (!(vocabulary[v].find(pronunciation[p]))) {
+					v--;
+				}
+				if (vocabulary[v].size() == 1) {
+					this->kanjiTrie.Insert(vocabulary[v], pronunciation[p], definition);
+					break;
+				}
+			}
+			buffer.clear();
+		};
+	}
 }
 
 Game::~Game() {

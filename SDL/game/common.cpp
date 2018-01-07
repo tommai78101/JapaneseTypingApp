@@ -2,150 +2,6 @@
 
 // Helper functions
 
-static void Convert_utf8_utf32(std::string& input, std::u32string& output) {
-	const uint32_t UTF32Mask = 0x001fffff;
-	int i = 0;
-	output.clear();
-	while (1) {
-		uint8_t iterator = (uint8_t) input[i];
-		if (!iterator)
-			break;
-		if (iterator < 0x80) {
-			//1 codepoint
-			output += (char32_t) (UTF32Mask & iterator);
-			i++;
-		}
-		else if (iterator < 0xC0) {
-			//midstream identifier, invalid
-			i++;
-			continue;
-		}
-		else if (iterator < 0xE0) {
-			//2 codepoint
-			uint8_t firstPoint = (uint8_t) (input[i] & 0x1F);
-			uint8_t secondPoint = (uint8_t) (input[i + 1] & 0x3F);
-			if (!IsLittleEndian()) {
-				output += (char32_t) (UTF32Mask & ((secondPoint << 6) | firstPoint));
-			}
-			else {
-				output += (char32_t) (UTF32Mask & ((firstPoint << 6) | secondPoint));
-			}
-			i += 2;
-		}
-		else if (iterator < 0xF0) {
-			//3 codepoints
-			uint8_t firstPoint = (uint8_t) (input[i] & 0x0F);
-			uint8_t secondPoint = (uint8_t) (input[i + 1] & 0x3F);
-			uint8_t thirdPoint = (uint8_t) (input[i + 2] & 0x3F);
-			if (!IsLittleEndian()) {
-				output += (char32_t) (UTF32Mask & ((thirdPoint << 12) | (secondPoint << 6) | firstPoint));
-			}
-			else {
-				output += (char32_t) (UTF32Mask & ((firstPoint << 12) | (secondPoint << 6) | thirdPoint));
-			}
-			i += 3;
-		}
-		else if (iterator < 0xF8) {
-			//4 codepoints
-			uint8_t firstPoint = (uint8_t) (input[i] & 0x07);
-			uint8_t secondPoint = (uint8_t) (input[i + 1] & 0x3F);
-			uint8_t thirdPoint = (uint8_t) (input[i + 2] & 0x3F);
-			uint8_t fourthPoint = (uint8_t) (input[i + 3] & 0x3F);
-			if (!IsLittleEndian()) {
-				output += (char32_t) (UTF32Mask & ((fourthPoint << 18) | (thirdPoint << 12) | (secondPoint << 6) | firstPoint));
-			}
-			else {
-				output += (char32_t) (UTF32Mask & ((firstPoint << 18) | (secondPoint << 12) | (thirdPoint << 6) | fourthPoint));
-			}
-			i += 4;
-		}
-		else {
-			//Invalid everything else
-			i++;
-		}
-	}
-}
-
-static void Convert_utf32_utf8(std::u32string& input, std::string& output) {
-	const uint8_t UTF8Midstream = 0x80;
-	const uint8_t UTF8MidstreamMask = 0x3f;
-	int i = 0;
-	output.clear();
-	while (1) {
-		uint32_t iterator = (uint32_t) input[i];
-		if (!iterator)
-			break;
-		if (iterator < 0x80) {
-			//U+0000..U+007F
-			output += (uint8_t) (0x7f & iterator);
-		}
-		else if (iterator < 0x800) {
-			//U+0080..U+07FF
-			uint8_t firstPoint = (uint8_t) (((0xDF << 6) & iterator) >> 6);
-			uint8_t secondPoint = (uint8_t) (0x3F & iterator);
-			if (!IsLittleEndian()) {
-				output += (uint8_t) (0xC0 | (0xDF & secondPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & firstPoint));
-			}
-			else {
-				output += (uint8_t) (0xC0 | (0xDF & firstPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
-			}
-		}
-		else if (iterator < 0xE000) {
-			//U+8000..U+D7FF (TUS 2.0)
-			uint8_t firstPoint = (uint8_t) (((0xF << 12) & iterator) >> 12);
-			uint8_t secondPoint = (uint8_t) (((0x3F << 6) & iterator) >> 6);
-			uint8_t thirdPoint = (uint8_t) (0x3F & iterator);
-			if (!IsLittleEndian()) {
-				output += (uint8_t) (0xE0 | (0x0F & thirdPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & firstPoint));
-			}
-			else {
-				output += (uint8_t) (0xE0 | (0x0F & firstPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & thirdPoint));
-			}
-		}
-		else if (iterator < 0x10000) {
-			//U+E000..U+FFFF (TUS 3.1)
-			uint8_t firstPoint = (uint8_t) (((0xF << 12) & iterator) >> 12);
-			uint8_t secondPoint = (uint8_t) (((0x3F << 6) & iterator) >> 6);
-			uint8_t thirdPoint = (uint8_t) (0x3F & iterator);
-			if (!IsLittleEndian()) {
-				output += (uint8_t) (0xE0 | (0x0F & thirdPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & firstPoint));
-			}
-			else {
-				output += (uint8_t) (0xE0 | (0x0F & firstPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & thirdPoint));
-			}
-		}
-		else if (iterator < 0x1FFFF) {
-			uint8_t firstPoint = (uint8_t) (((0x7 << 18) & iterator) >> 18);
-			uint8_t secondPoint = (uint8_t) (((0x3F << 12) & iterator) >> 12);
-			uint8_t thirdPoint = (uint8_t) (((0x3F << 6) & iterator) >> 6);
-			uint8_t fourthPoint = (uint8_t) (0x3F & iterator);
-			if (!IsLittleEndian()) {
-				output += (uint8_t) (0xE0 | (0x07 & fourthPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & thirdPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & firstPoint));
-			}
-			else {
-				output += (uint8_t) (0xE0 | (0x07 & firstPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & secondPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & thirdPoint));
-				output += (uint8_t) (UTF8Midstream | (UTF8MidstreamMask & fourthPoint));
-			}
-		}
-		i++;
-	}
-}
-
 std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer) {
 	std::string returnValue = value.substr(0, value.find(firstContainer));
 	return returnValue;
@@ -268,33 +124,20 @@ void VocabularyTrieNode::Clear() {
 	}
 }
 
-VocabularyTrieNode* VocabularyTrieNode::SearchChild(std::string& value) {
+VocabularyTrieNode* VocabularyTrieNode::SearchChild(char32_t& value) {
 	for (VocabularyTrieNode* it : this->children) {
 		//See usage: http://www.cplusplus.com/reference/string/string/compare/
 		//"it->vocabulary" is "compared string"
 		//"value" is "comparing string".
 
-		int result = it->vocabulary.compare(value);
-		if (result > 0) {
-			//Greater than 0: 
-			//1) Value of the first character that doesn't match in "value" is greater than "it->vocabulary"
-			//2) "it->vocabulary" is longer than "value"
+		std::u32string comparing;
+		comparing += value;
+		std::u32string compared;
+		compared += it->vocabulary;
 
-			//See constructor usage: http://www.cplusplus.com/reference/string/string/string/
-			//Calling on copy constructor
-			std::string copyOfVocabulary(it->vocabulary);
-			copyOfVocabulary.resize(value.size());
-			result = copyOfVocabulary.compare(value);
-			if (result > 0) {
-				//Condition #1 matched, we skip it.
-				continue;
-			}
-			else if (result == 0) {
-				//Condition #2 matched, return the node.
-				return it;
-			}
-		}
-		else if (result == 0) {	
+		//Comparing strings of size 1.
+		int result = compared.compare(comparing);
+		if (result == 0) {	
 			//Is 0: value is equal to it->vocabulary
 			return it;
 		}
@@ -306,17 +149,27 @@ VocabularyTrieNode* VocabularyTrieNode::SearchChild(std::string& value) {
 
 //VocabularyTrie functions
 
-void VocabularyTrie::Insert(char* value, char* leafValue) {
-	std::string newValue(value);
-	std::string newLeafValue(leafValue);
-	this->Insert(newValue, newLeafValue);
+void VocabularyTrie::Insert(std::string& value, std::string& leafValue, std::string& meaning) {
+	std::u32string newValue;
+	Convert_utf8_utf32(value, newValue);
+	std::u32string newLeafValue;
+	Convert_utf8_utf32(leafValue, newLeafValue);
+	std::u32string newMeaning;
+	Convert_utf8_utf32(meaning, newMeaning);
+	this->Insert(newValue, newLeafValue, newMeaning);
 }
 
-void VocabularyTrie::Insert(std::string& value, std::string leafValue) {
+void VocabularyTrie::Insert(char* value, char* leafValue, char* meaning) {
+	std::string newValue(value);
+	std::string newLeafValue(leafValue);
+	std::string newMeaning(meaning);
+	this->Insert(newValue, newLeafValue, newMeaning);
+}
+
+void VocabularyTrie::Insert(std::u32string& value, std::u32string& leafValue, std::u32string& meaning) {
 	VocabularyTrieNode* iterator = this->root;
-	for (std::string::iterator it = value.begin(); iterator && it != value.end(); it++) {
-		std::ptrdiff_t diff = std::distance(value.begin(), it);
-		std::string child = value.substr(static_cast<size_t>(diff), value.size());
+	for (int i = 0; i < value.size(); i++) {
+		char32_t child = value[i];
 		VocabularyTrieNode* node = iterator->SearchChild(child);
 		if (!node) {
 			node = new VocabularyTrieNode();
@@ -326,6 +179,13 @@ void VocabularyTrie::Insert(std::string& value, std::string leafValue) {
 		iterator = node;
 	}
 	iterator->pronunciation = leafValue;
+	iterator->englishDefinition = meaning;
+}
+
+bool VocabularyTrie::Contains(std::string& value) {
+	std::u32string newValue;
+	Convert_utf8_utf32(value, newValue);
+	return this->Contains(newValue);
 }
 
 bool VocabularyTrie::Contains(char* value) {
@@ -333,12 +193,11 @@ bool VocabularyTrie::Contains(char* value) {
 	return this->Contains(newValue);
 }
 
-bool VocabularyTrie::Contains(std::string& value) {
+bool VocabularyTrie::Contains(std::u32string& value) {
 	VocabularyTrieNode* iterator = this->root;
 	VocabularyTrieNode* result;
 	for (int i = 0; i < value.size(); i++) {
-		std::string copyOfValue(value, i);
-		result = iterator->SearchChild(copyOfValue);
+		result = iterator->SearchChild(value[i]);
 		if (result) {
 			iterator = result;
 		}
@@ -346,25 +205,66 @@ bool VocabularyTrie::Contains(std::string& value) {
 	return (iterator && iterator->IsLeaf());
 }
 
-std::string VocabularyTrie::Get(char* value) {
-	std::string newValue(value);
-	return this->Get(newValue);
+std::string VocabularyTrie::GetPronunciation(std::string& value) {
+	std::u32string newValue;
+	Convert_utf8_utf32(value, newValue);
+	return this->GetPronunciation(newValue);
 }
 
-std::string VocabularyTrie::Get(std::string& value) {
+std::string VocabularyTrie::GetPronunciation(char* value) {
+	std::string newValue(value);
+	return this->GetPronunciation(newValue);
+}
+
+std::string VocabularyTrie::GetPronunciation(std::u32string& value) {
 	VocabularyTrieNode* iterator = this->root;
 	VocabularyTrieNode* result;
 	for (int i = 0; i < value.size(); i++) {
-		std::string copyOfValue(value, i);
-		result = iterator->SearchChild(copyOfValue);
+		result = iterator->SearchChild(value[i]);
 		if (result) {
 			iterator = result;
 		}
 	}
 	if (iterator && iterator->IsLeaf()) {
-		return iterator->pronunciation;
+		std::string strResult;
+		Convert_utf32_utf8(iterator->pronunciation, strResult);
+		return strResult;
 	}
 	return nullptr;
+}
+
+std::string VocabularyTrie::GetDefinition(std::string& value) {
+	std::u32string newValue;
+	Convert_utf8_utf32(value, newValue);
+	return this->GetDefinition(newValue);
+}
+
+std::string VocabularyTrie::GetDefinition(char* value) {
+	std::string newValue(value);
+	return this->GetDefinition(newValue);
+}
+
+std::string VocabularyTrie::GetDefinition(std::u32string& value) {
+	VocabularyTrieNode* iterator = this->root;
+	VocabularyTrieNode* result;
+	for (int i = 0; i < value.size(); i++) {
+		result = iterator->SearchChild(value[i]);
+		if (result) {
+			iterator = result;
+		}
+	}
+	if (iterator && iterator->IsLeaf()) {
+		std::string strResult;
+		Convert_utf32_utf8(iterator->englishDefinition, strResult);
+		return strResult;
+	}
+	return nullptr;
+}
+
+VocabularyTrieNode* VocabularyTrie::GetNode(std::string& value) {
+	std::u32string newValue;
+	Convert_utf8_utf32(value, newValue);
+	return this->GetNode(newValue);
 }
 
 VocabularyTrieNode* VocabularyTrie::GetNode(char* value) {
@@ -372,12 +272,11 @@ VocabularyTrieNode* VocabularyTrie::GetNode(char* value) {
 	return this->GetNode(newValue);
 }
 
-VocabularyTrieNode* VocabularyTrie::GetNode(std::string& value) {
+VocabularyTrieNode* VocabularyTrie::GetNode(std::u32string& value) {
 	VocabularyTrieNode* iterator = this->root;
 	VocabularyTrieNode* result;
 	for (int i = 0; i < value.size(); i++) {
-		std::string copyOfValue(value, i);
-		result = iterator->SearchChild(copyOfValue);
+		result = iterator->SearchChild(value[i]);
 		if (result) {
 			iterator = result;
 		}
