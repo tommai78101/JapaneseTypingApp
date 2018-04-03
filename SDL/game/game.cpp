@@ -24,6 +24,7 @@ Game::Game(int newWidth = 400, int newHeight = 400) : gameWindow(nullptr), gameW
 		return;
 	}
 	this->defaultFont = TTF_OpenFont("font/meiryo.ttc", 36);
+#ifdef _WIN32
 	if (this->defaultFont == nullptr) {
 		std::cerr << "Unable to find the font." << std::endl;
 		TCHAR pBuffer[MAX_PATH];		//Multibyte string in Windows (internal as UTF-16 LE)
@@ -33,6 +34,11 @@ Game::Game(int newWidth = 400, int newHeight = 400) : gameWindow(nullptr), gameW
 		}
 		throw std::exception("No fonts set.");
 	}
+#else
+	if (this->defaultFont == nullptr) {
+		std::cerr << "Unable to find the font." << std::endl;
+	}
+#endif
 
 	//Input system initialization
 	this->inputSystem = new Input(this);
@@ -201,7 +207,12 @@ void Game::GameLoop() {
 	SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 0, 255);
 
 	//Main game loop. Loops while checking if the quitFlag is not set
-	while (!this->quitFlag) {
+#ifdef __SWITCH__
+	while (appletMainLoop())
+#else
+	while (!this->quitFlag)
+#endif
+	{
 		//Calculating each tick's elapsed time, and use this to update the game according to the 
 		//remaining ticks available that should be used to update the game with.
 		currentPerformanceCounter = SDL_GetPerformanceCounter();
@@ -341,7 +352,9 @@ void Game::HandleEvent() {
 }
 
 void Game::QuitGame() {
+#ifndef __SWITCH__
 	this->quitFlag = true;
+#endif
 }
 
 void Game::Clear() {

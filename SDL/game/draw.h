@@ -31,7 +31,7 @@ public:
 	void SetScale(float value);
 
 	//Fetches the pixel value and stores it in the outPixel. Returns true if succeeds. False, if otherwise.
-	bool Draw::GetPixel(size_t x, size_t y, uint32_t* outPixel);
+	bool GetPixel(size_t x, size_t y, uint32_t* outPixel);
 	//Sets the pixel value in the size_tended position. Returns true if succeeds. False, if otherwise.
 	bool SetPixel(size_t x, size_t y, uint32_t color);
 

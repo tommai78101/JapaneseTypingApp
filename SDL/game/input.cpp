@@ -10,11 +10,20 @@ void ConvertKeycodesToString(std::vector<SDL_Keycode>& codes, std::string& outpu
 	}
 }
 
-void InsertGlyph(KeyCodeTrie& trie, std::initializer_list<SDL_Keycode> list, char* glyph) {
-	static std::vector<SDL_Keycode> key;
-	key.insert(key.end(), list);
-	trie.Insert(key, glyph);
-	key.clear();
+void InsertGlyph(KeyCodeTrie& trie, std::initializer_list<SDL_Keycode> list, const char* glyph) {
+	if (glyph) {
+		static std::vector<SDL_Keycode> key;
+		key.insert(key.end(), list);
+		char* p = (char*) std::calloc(std::strlen(glyph) + 1, sizeof(*glyph));
+		if (p) {
+			strcpy_s(p, std::strlen(glyph), glyph);
+			trie.Insert(key, p);
+			std::free(p);
+			key.clear();
+			return;
+		}
+		key.clear();
+	}
 }
 
 void InitializeGlyphMap(KeyCodeTrie& hiraganaTrie, KeyCodeTrie& katakanaTrie) {

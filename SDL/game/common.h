@@ -7,7 +7,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-//Standard libraries
+//Standard C++ libraries
 #include <cstring>						//For std::memmove, std::memcpy only
 #include <string>
 #include <iostream>
@@ -28,6 +28,8 @@
 #	include <Windows.h>
 #elif defined _UNIX
 #	include <unistd.h>
+#elif defined __SWITCH__
+#	include <switch.h>
 #endif
 
 //For anything using size_t, use size_t.
@@ -50,6 +52,20 @@ enum UpOrientation {
 };
 
 //Helper functions
+
+//strcpy_s
+template<typename C>
+inline int strcpy_s(C*d, unsigned long dmax, const C*s) { 
+	if (dmax <= 1 || !d) { 
+		if (!d || !dmax)
+			return -1;
+		*d = C(0); 
+		return 0; 
+	}
+	for (C*de = d + dmax - 1; 
+		(d != de || (*d = C(0))) && (*d = *s); ++d, ++s); 
+	return 0; 
+}
 
 //Unicode Substrings
 extern std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer);
@@ -83,7 +99,7 @@ static void ParseLine(std::u32string& formattedLine, std::vector<std::u32string>
 	bool pronunciationMarked = false;
 	bool definitionMarked = false;
 	std::u32string token;
-	for (int i = 0; i < formattedLine.size(); i++) {
+	for (unsigned int i = 0; i < formattedLine.size(); i++) {
 		if (!vocabularyExtracted) {
 			if (formattedLine[i] != U' ' && formattedLine[i + 1] != U'[') {
 				if (formattedLine[i] == U';') {
@@ -288,6 +304,8 @@ static void Convert_utf32_utf8(std::u32string& input, std::string& output) {
 	}
 }
 
+//End Helper functions
+
 //Vector2D stuffs
 
 struct Vector2D {
@@ -333,11 +351,11 @@ Vector2D CreateIsometricPosition(Vector2D velocity, UpOrientation orientation);
 
 typedef union {
 	size_t data[3];
-	struct {
+	struct vector {
 		size_t x;
 		size_t y;
 		size_t z;
-	};
+	} vector;
 } Vector3Di;
 
 //End Integer Vector3D stuffs
@@ -346,18 +364,18 @@ typedef union {
 
 typedef union {
 	size_t data[4];
-	struct {
+	struct quaternion {
 		size_t x;
 		size_t y;
 		size_t z;
 		size_t w;
-	};
-	struct {
+	} quaternion;
+	struct rect {
 		size_t x;
 		size_t y;
 		size_t width;
 		size_t height;
-	};
+	} rect;
 } Vector4Di;
 
 //End Integer Vector4D stuffs
@@ -366,11 +384,11 @@ typedef union {
 
 typedef union {
 	float data[3];
-	struct {
+	struct vector {
 		float x;
 		float y;
 		float z;
-	};
+	} vector;
 } Vector3Df;
 
 //End Float32 Vector3D stuffs
@@ -379,24 +397,24 @@ typedef union {
 
 typedef union {
 	float data[4];
-	struct {
+	struct coordinates {
 		float s0;
 		float t0;
 		float s1;
 		float t1;
-	};
-	struct {
+	} coordinates;
+	struct rect {
 		float topLeftX;
 		float topLeftY;
 		float bottomRightX;
 		float bottomRightY;
-	};
-	struct {
+	} rect;
+	struct quaternion {
 		float x;
 		float y;
 		float z;
 		float w;
-	};
+	} quaternion;
 } Vector4Df;
 
 //End Float Vector4D stuffs
