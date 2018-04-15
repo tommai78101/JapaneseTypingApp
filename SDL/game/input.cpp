@@ -885,7 +885,7 @@ void InitializeGlyphMap(KeyCodeTrie& hiraganaTrie, KeyCodeTrie& katakanaTrie) {
 	InsertGlyph(katakanaTrie, { SDLK_b, SDLK_a }, u8"バ");
 
 	//パ
-	InsertGlyph(katakanaTrie, { SDLK_b, SDLK_a }, u8"パ");
+	InsertGlyph(katakanaTrie, { SDLK_p, SDLK_a }, u8"パ");
 
 	//ビ
 	InsertGlyph(katakanaTrie, { SDLK_b, SDLK_i }, u8"ビ");
