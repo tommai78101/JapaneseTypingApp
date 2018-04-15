@@ -14,9 +14,10 @@ void InsertGlyph(KeyCodeTrie& trie, std::initializer_list<SDL_Keycode> list, con
 	if (glyph) {
 		static std::vector<SDL_Keycode> key;
 		key.insert(key.end(), list);
-		char* p = (char*) std::calloc(std::strlen(glyph) + 1, sizeof(*glyph));
+		unsigned long length = (unsigned long) std::strlen(glyph);
+		char* p = (char*) std::calloc(length + 1, sizeof(*glyph));
 		if (p) {
-			strcpy_s(p, std::strlen(glyph), glyph);
+			strcpy_s(p, length, glyph);
 			trie.Insert(key, p);
 			std::free(p);
 			key.clear();
