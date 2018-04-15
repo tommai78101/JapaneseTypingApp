@@ -42,7 +42,7 @@ EXEFS_SRC	:=	exefs_src
 #---------------------------------------------------------------------------------
 ARCH		:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS		:=	-g -Wall -O2 -ffunction-sections $(ARCH) `sdl2-config --cflags` `freetype-config --cflags` ($ARCH) $(DEFINES)
+CFLAGS		:=	-g -Wall -O2 -ffunction-sections $(ARCH) `sdl2-config --cflags` `freetype-config --cflags` $(DEFINES)
 
 CFLAGS		+=	$(INCLUDE) -D__SWITCH__
 
@@ -77,8 +77,11 @@ LDFLAGS		=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 # Whenever freetype is used, it must have the dependency libraries on the right,
 # like so:
 #     `freetype-config --libs` -lpng -lz -lbz2
+# Or, install pkg-config:
+#     sudo apt-get install pkg-config
+# As freetype-config piggybacks on pkg-config.
 #---------------------------------------------------------------------------------
-LIBS		:= -lSDL2_ttf `sdl2-config --libs` `freetype-config --libs` -lpng -lz -lbz2
+LIBS		:= -lSDL2_ttf `sdl2-config --libs` `freetype-config --libs`
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -177,7 +180,6 @@ switch:
 	@echo build ...
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	
 
 
 #---------------------------------------------------------------------------------
