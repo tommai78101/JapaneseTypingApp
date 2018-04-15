@@ -5,6 +5,10 @@
 #endif
 
 int main(int c, char* v[]) {
+#ifdef __SWITCH__
+	gfxInitDefault();
+	consoleInit(NULL);
+#endif
 #ifndef __SWITCH__
 	try
 #endif
@@ -31,5 +35,8 @@ int main(int c, char* v[]) {
 
 	//Exit the game, and quit, then deallocate the Game object.
 	//When Game object is de-allocated, the Game class destructor handles memory garbage collection.
+#ifdef __SWITCH__
+	gfxExit();
+#endif
 	return 0;
 }

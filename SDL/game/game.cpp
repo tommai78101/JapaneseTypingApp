@@ -239,10 +239,20 @@ void Game::GameLoop() {
 		//We give back the CPU its own time, and delay our game up to that posize_t. This is to prevent the CPU
 		//from being hogged up by our game, avoiding the main thread (kernel thread) to be overtaken for rendering our game.
 		SDL_Delay(1);
+
+#ifdef __SWITCH__
+		if (this->quitFlag)
+			break;
+
+		gfxFlushBuffers();
+		gfxSwapBuffers();
+		gfxWaitForVsync();
+#endif
 	}
 }
 
 void Game::Update() {
+#ifndef __SWITCH__
 	//Updates the game. 
 	this->inputSystem->Update();
 
@@ -255,6 +265,7 @@ void Game::Update() {
 
 	//Reworking the new block.
 	//this->block->Update(static_cast<int>(this->position.x), static_cast<int>(this->position.y));
+#endif
 }
 
 void Game::Render() {
@@ -352,9 +363,7 @@ void Game::HandleEvent() {
 }
 
 void Game::QuitGame() {
-#ifndef __SWITCH__
 	this->quitFlag = true;
-#endif
 }
 
 void Game::Clear() {
