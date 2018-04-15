@@ -1,11 +1,15 @@
 ﻿#ifndef __COMMON_H__
 #	define __COMMON_H__
 
-#pragma once
+#pragma once 
 
-//SDL libraries
-#include <SDL.h>
-#include <SDL_ttf.h>
+#ifdef _WIN32
+#	include <Windows.h>
+#elif defined _UNIX
+#	include <unistd.h>
+#elif defined __SWITCH__
+#	include <switch.h>
+#endif
 
 //Standard C++ libraries
 #include <cstring>						//For std::memmove, std::memcpy only
@@ -24,13 +28,9 @@
 #include <locale>
 #include <vector>
 
-#ifdef _WIN32
-#	include <Windows.h>
-#elif defined _UNIX
-#	include <unistd.h>
-#elif defined __SWITCH__
-#	include <switch.h>
-#endif
+//SDL libraries
+#include <SDL.h>
+#include <SDL_ttf.h>
 
 //For anything using size_t, use size_t.
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN

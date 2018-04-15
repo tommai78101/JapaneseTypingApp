@@ -11,18 +11,11 @@ void ConvertKeycodesToString(std::vector<SDL_Keycode>& codes, std::string& outpu
 }
 
 void InsertGlyph(KeyCodeTrie& trie, std::initializer_list<SDL_Keycode> list, const char* glyph) {
+	static std::vector<SDL_Keycode> key;
 	if (glyph) {
-		static std::vector<SDL_Keycode> key;
+		char* duplicate = _strdup(glyph);
 		key.insert(key.end(), list);
-		unsigned long length = (unsigned long) std::strlen(glyph);
-		char* p = (char*) std::calloc(length + 1, sizeof(*glyph));
-		if (p) {
-			strcpy_s(p, length, glyph);
-			trie.Insert(key, p);
-			std::free(p);
-			key.clear();
-			return;
-		}
+		trie.Insert(key, duplicate);
 		key.clear();
 	}
 }
