@@ -13,7 +13,7 @@ void ConvertKeycodesToString(std::vector<SDL_Keycode>& codes, std::string& outpu
 void InsertGlyph(KeyCodeTrie& trie, std::initializer_list<SDL_Keycode> list, const char* glyph) {
 	static std::vector<SDL_Keycode> key;
 	if (glyph) {
-		char* duplicate = _strdup(glyph);
+		char* duplicate = strdupWrapper(glyph);
 		key.insert(key.end(), list);
 		trie.Insert(key, duplicate);
 		key.clear();

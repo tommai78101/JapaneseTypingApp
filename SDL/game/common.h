@@ -66,6 +66,15 @@ inline int strcpy_s(C*d, unsigned long dmax, const C*s) {
 	return 0; 
 }
 
+//strdup wrapper
+inline char* strdupWrapper(const char* str) {
+#ifdef _WIN32
+	return _strdup(str);
+#else
+	return strdup(str);
+#endif
+}
+
 //Unicode Substrings
 extern std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer);
 extern std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer);
