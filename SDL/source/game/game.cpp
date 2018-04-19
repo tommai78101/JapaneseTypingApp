@@ -13,10 +13,22 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	//SDL objects initialization.
 	//SDL_Init returns a negative size_teger (error) or 0 (success). 
 	//https://wiki.libsdl.org/SDL_Init (SDL docs)
+#ifdef __SWITCH__
+	// redirect stdout to emulators
+	consoleDebugInit(debugDevice_SVC);
+	stdout = stderr;
+
+	// mandatory at least on switch, else gfx is not properly closed
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
+		printf("SDL_Init: %s\n", SDL_GetError());
+		return;
+	}
+#else
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		std::cout << "SDL Error: " << SDL_GetError() << std::endl;
 		return;
 	}
+#endif
 
 	//Initialize the game window.
 	this->Initialize(title);
@@ -40,6 +52,12 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 #else
 	if (this->defaultFont == nullptr) {
 		std::cerr << "Unable to find the font." << std::endl;
+		SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 255, 255);
+		SDL_RenderClear(this->gameWindowRenderer);
+		SDL_RenderPresent(this->gameWindowRenderer);
+		SDL_Delay(3000);
+		this->QuitGame();
+		return;
 	}
 #endif
 
