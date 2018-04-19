@@ -3,6 +3,10 @@
 
 #pragma once 
 
+#ifdef __SWITCH__
+#	undef _WIN32
+#endif
+
 #ifdef _WIN32
 #	include <Windows.h>
 #elif defined _UNIX
@@ -29,8 +33,13 @@
 #include <vector>
 
 //SDL libraries
-#include <SDL.h>
-#include <SDL_ttf.h>
+#ifdef __SWITCH__
+#	include <SDL2/SDL.h>
+#	include <SDL2/SDL_ttf.h>
+#else
+#	include <SDL.h>
+#	include <SDL_ttf.h>
+#endif
 
 //For anything using size_t, use size_t.
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -73,6 +82,15 @@ inline char* strdupWrapper(const char* str) {
 #else
 	return strdup(str);
 #endif
+}
+
+// SDL_vsnprintf
+static void Print(const char* format, ...) {
+	va_list args;
+	char buffer[256];
+	va_start(args, format);
+	SDL_vsnprintf(buffer, 255, format, args);
+	va_end(args);
 }
 
 //Unicode Substrings
@@ -510,6 +528,52 @@ struct VocabularyTrie {
 //Constants
 static const SDL_Color SDL_COLOR_Black = { };
 static const SDL_Color SDL_COLOR_Red = { 255, 0 };
+#ifdef __SWITCH__
+static const char* EDICT2PATH = "dict/edict2u";
+static const char* FONTPATH = "font/meiryo.ttc";
+#else
+static const char* EDICT2PATH = "dict/edict2u";
+static const char* FONTPATH = "font/meiryo.ttc";
+#endif
+static const char* DEBUG = "(debug) ";
+
+//Switch Joycon keys
+#ifdef __SWITCH__
+class JoyconButtons {
+public:
+	static const uint8_t KEY_A = 0;
+	static const uint8_t KEY_B = 1;
+	static const uint8_t KEY_X = 2;
+	static const uint8_t KEY_Y = 3;
+
+	static const uint8_t KEY_LSTICK = 4;
+	static const uint8_t KEY_RSTICK = 5;
+
+	static const uint8_t KEY_L = 6;
+	static const uint8_t KEY_R = 7;
+
+	static const uint8_t KEY_ZL = 8;
+	static const uint8_t KEY_ZR = 9;
+
+	static const uint8_t KEY_PLUS = 10;
+	static const uint8_t KEY_MINUS = 11;
+
+	static const uint8_t KEY_DLEFT = 12;
+	static const uint8_t KEY_DUP = 13;
+	static const uint8_t KEY_DRIGHT = 14;
+	static const uint8_t KEY_DDOWN = 15;
+
+	static const uint8_t KEY_LSTICK_LEFT = 16;
+	static const uint8_t KEY_LSTICK_UP = 17;
+	static const uint8_t KEY_LSTICK_RIGHT = 18;
+	static const uint8_t KEY_LSTICK_DOWN = 19;
+
+	static const uint8_t KEY_RSTICK_LEFT = 20;
+	static const uint8_t KEY_RSTICK_UP = 21;
+	static const uint8_t KEY_RSTICK_RIGHT = 22;
+	static const uint8_t KEY_RSTICK_DOWN = 23;
+};
+#endif
 
 //C++ class headers.
 #include "draw.h"

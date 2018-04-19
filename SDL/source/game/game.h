@@ -22,8 +22,11 @@ protected:
 	size_t scale;
 	size_t clearColor;
 	bool quitFlag;
-	uint32_t* pixels;
 	std::wstring inputString;
+
+	//Game Surface properties
+	uint32_t* pixels;
+	uint32_t pitch;
 
 	//SDL stuffs
 	SDL_Window* gameWindow;
@@ -52,12 +55,13 @@ protected:
 public:
 	static const int gravity = -1;
 
-	Game(int newWidth, int newHeight);
+	Game(int newWidth, int newHeight, std::string title);
 	~Game();
 
 	void Initialize(std::string title);
 	bool IsWindowInitialized() const;
 	void GameLoop();
+	bool GameLoopTick();
 	void HandleEvent();
 	void HandleInput();
 	void QuitGame();
@@ -65,6 +69,7 @@ public:
 
 	virtual void Update();
 	virtual void Render();
+	void DrawPixel(uint32_t x, uint32_t y, uint32_t width, uint32_t color);
 
 	//Getter/Setters
 	size_t GetWidth() const;

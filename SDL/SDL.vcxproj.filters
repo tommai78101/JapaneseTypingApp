@@ -25,45 +25,45 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="game\game.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
-    <ClCompile Include="game\common.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
-    <ClCompile Include="game\draw.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
-    <ClCompile Include="game\block.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
-    <ClCompile Include="game\input.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
     <ClCompile Include="main_pc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main_switch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\game\block.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="source\game\common.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="source\game\draw.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="source\game\game.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="source\game\input.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="game\game.h">
+    <ClInclude Include="source\game\block.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="game\common.h">
+    <ClInclude Include="source\game\common.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="game\draw.h">
+    <ClInclude Include="source\game\draw.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="game\block.h">
+    <ClInclude Include="source\game\game.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="game\input.h">
+    <ClInclude Include="source\game\input.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
   </ItemGroup>

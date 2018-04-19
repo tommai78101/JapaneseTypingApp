@@ -31,8 +31,8 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	../SDL    \
-				game
+SOURCES		:=	source  \
+				source/game
 DATA		:=	data
 INCLUDES	:=	include
 EXEFS_SRC	:=	exefs_src
@@ -81,7 +81,7 @@ LDFLAGS		=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 #     sudo apt-get install pkg-config
 # As freetype-config piggybacks on pkg-config.
 #---------------------------------------------------------------------------------
-LIBS		:= -lSDL2_ttf `sdl2-config --libs` `freetype-config --libs`
+LIBS		:= -lSDL2_ttf `sdl2-config --libs` -L/mnt/c/devkitPro/portlibs/switch/lib -L/mnt/c/devkitPro/libnx/lib -L/mnt/c/devkitPro/portlibs/switch/lib -lfreetype -lbz2 -lpng16 -lz -lm -lnx -lz
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -161,7 +161,7 @@ ifneq ($(APP_TITLEID),)
 	export NACPFLAGS += --titleid=$(APP_TITLEID)
 endif
 
-.PHONY: clean all $(BUILD) switch
+.PHONY: clean all $(BUILD) switch test
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
@@ -180,6 +180,10 @@ switch:
 	@echo build ...
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+
+test:
+	@echo $(DEVKITPRO)
+	@echo `freetype-config --libs`
 
 
 #---------------------------------------------------------------------------------
