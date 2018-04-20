@@ -38,7 +38,11 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 		std::cout << "SDL_ttf Error: " << TTF_GetError() << std::endl;
 		return;
 	}
+#ifdef __SWITCH__
+	this->defaultFont = TTF_OpenFontRW(SDL_RWFromMem((void *) meiryo_ttc, meiryo_ttc_size), 1, 36);
+#else
 	this->defaultFont = TTF_OpenFont(FONTPATH, 36);
+#endif
 #ifdef _WIN32
 	if (this->defaultFont == nullptr) {
 		std::cerr << "Unable to find the font." << std::endl;
@@ -55,7 +59,7 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 		SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 255, 255);
 		SDL_RenderClear(this->gameWindowRenderer);
 		SDL_RenderPresent(this->gameWindowRenderer);
-		SDL_Delay(3000);
+		SDL_Delay(10000);
 		this->QuitGame();
 		return;
 	}

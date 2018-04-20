@@ -33,7 +33,8 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source  \
 				source/game
-DATA		:=	data
+DATA		:=	data/font \
+				data/dict
 INCLUDES	:=	include
 EXEFS_SRC	:=	exefs_src
 
@@ -213,6 +214,14 @@ $(OUTPUT).elf	:	$(OFILES)
 # you need a rule like this for each extension you use as binary data
 #---------------------------------------------------------------------------------
 %.bin.o	:	%.bin
+	@echo $(notdir $<)
+	@$(bin2o)
+
+%.ttc.o :	%.ttc
+	@echo $(notdir $<)
+	@$(bin2o)
+
+%.ttf.o :	%.ttf
 	@echo $(notdir $<)
 	@$(bin2o)
 

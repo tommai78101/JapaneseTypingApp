@@ -32,6 +32,9 @@
 #include <locale>
 #include <vector>
 
+//Exclusively POSIX header file
+#include <dirent.h>
+
 //SDL libraries
 #ifdef __SWITCH__
 #	include <SDL2/SDL.h>
@@ -528,13 +531,8 @@ struct VocabularyTrie {
 //Constants
 static const SDL_Color SDL_COLOR_Black = { };
 static const SDL_Color SDL_COLOR_Red = { 255, 0 };
-#ifdef __SWITCH__
 static const char* EDICT2PATH = "dict/edict2u";
 static const char* FONTPATH = "font/meiryo.ttc";
-#else
-static const char* EDICT2PATH = "dict/edict2u";
-static const char* FONTPATH = "font/meiryo.ttc";
-#endif
 static const char* DEBUG = "(debug) ";
 
 //Switch Joycon keys
@@ -580,5 +578,10 @@ public:
 #include "block.h"
 #include "input.h"
 #include "game.h"
+
+#ifdef __SWITCH__
+//Font headers
+#	include "meiryo_ttc.h"
+#endif
 
 #endif
