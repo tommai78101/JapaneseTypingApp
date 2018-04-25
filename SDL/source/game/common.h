@@ -32,13 +32,12 @@
 #include <locale>
 #include <vector>
 
-//Exclusively POSIX header file
-#include <dirent.h>
-
 //SDL libraries
 #ifdef __SWITCH__
 #	include <SDL2/SDL.h>
 #	include <SDL2/SDL_ttf.h>
+//Exclusively POSIX header file
+#	include <dirent.h>
 #else
 #	include <SDL.h>
 #	include <SDL_ttf.h>
@@ -531,8 +530,15 @@ struct VocabularyTrie {
 //Constants
 static const SDL_Color SDL_COLOR_Black = { };
 static const SDL_Color SDL_COLOR_Red = { 255, 0 };
+
+#ifdef __SWITCH__
+static const char* EDICT2PATH = "romfs:/edict2u";
+#else
 static const char* EDICT2PATH = "dict/edict2u";
-static const char* FONTPATH = "font/meiryo.ttc";
+#endif
+
+//static const char* FONTPATH = "font/meiryo.ttc";
+static const char* FONTPATH = "font/JapanSan.ttf";
 static const char* DEBUG = "(debug) ";
 
 //Switch Joycon keys
@@ -581,7 +587,7 @@ public:
 
 #ifdef __SWITCH__
 //Font headers
-#	include "meiryo_ttc.h"
+#	include "JapanSans_ttf.h"
 #endif
 
 #endif

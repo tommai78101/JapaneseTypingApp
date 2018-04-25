@@ -51,7 +51,8 @@ protected:
 	Block* block;
 	VocabularyTrie kanjiTrie;
 	
-
+	//unistd.h specific variables
+	FILE* dictionaryFile;
 public:
 	static const int gravity = -1;
 

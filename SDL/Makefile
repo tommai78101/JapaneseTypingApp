@@ -16,6 +16,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 # DATA is a list of directories containing data files
 # INCLUDES is a list of directories containing header files
 # EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
+# ROMFS is the directory containing data to be added to RomFS, relative to the Makefile (Optional)
 #
 # NO_ICON: if set to anything, do not use icon.
 # NO_NACP: if set to anything, no .nacp file is generated.
@@ -33,10 +34,10 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source  \
 				source/game
-DATA		:=	data/font \
-				data/dict
+DATA		:=	data/font
 INCLUDES	:=	include
 EXEFS_SRC	:=	exefs_src
+ROMFS		:=	romfs
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -162,10 +163,14 @@ ifneq ($(APP_TITLEID),)
 	export NACPFLAGS += --titleid=$(APP_TITLEID)
 endif
 
-.PHONY: clean all $(BUILD) switch test
+ifneq ($(ROMFS),)
+	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
+endif
+
+.PHONY: clean all $(BUILD) switch nx
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: $(BUILD) nx
 
 $(BUILD):
 	@echo build ...
@@ -181,10 +186,11 @@ switch:
 	@echo build ...
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@nxlink -a 192.168.1.157:5000 $(TARGET).nro
 
-test:
-	@echo $(DEVKITPRO)
-	@echo `freetype-config --libs`
+nx:
+	@echo nxlinking ...
+	@nxlink -a 192.168.1.157 $(TARGET).nro
 
 
 #---------------------------------------------------------------------------------

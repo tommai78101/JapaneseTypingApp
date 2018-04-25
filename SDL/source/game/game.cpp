@@ -1,6 +1,7 @@
 ﻿#include "game.h"
 
-Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello world") : gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false), width(newWidth), height(newHeight), pixels(nullptr), scale(8) {
+Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello world") : 
+		gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false), width(newWidth), height(newHeight), pixels(nullptr), scale(8), dictionaryFile(nullptr) {
 	//Setting up random numbers.
 	srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -17,6 +18,24 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	// redirect stdout to emulators
 	consoleDebugInit(debugDevice_SVC);
 	stdout = stderr;
+
+	//Prepareing ROMFS. (Untested)
+	Result result = romfsInit();
+	if (R_SUCCEEDED(result)) {
+		this->dictionaryFile = fopen("romfs:/edict2u", "r");
+		if (!this->dictionaryFile) {
+			std::cout << DEBUG << "FATAL! Something wrong happened." << std::endl;
+			std::cout << DEBUG << "Unable to open the file." << std::endl;
+			this->QuitGame();
+			return;
+		}
+	}
+	else {
+		std::cout << DEBUG << "FATAL! Something wrong happened." << std::endl;
+		std::cout << DEBUG << "romfsInit result: " << std::hex << result << std::endl;
+		this->QuitGame();
+		return;
+	}
 
 	// mandatory at least on switch, else gfx is not properly closed
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
@@ -39,7 +58,7 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 		return;
 	}
 #ifdef __SWITCH__
-	this->defaultFont = TTF_OpenFontRW(SDL_RWFromMem((void *) meiryo_ttc, meiryo_ttc_size), 1, 36);
+	this->defaultFont = TTF_OpenFontRW(SDL_RWFromMem((void *) JapanSans_ttf, JapanSans_ttf_size), 1, 36);
 #else
 	this->defaultFont = TTF_OpenFont(FONTPATH, 36);
 #endif
