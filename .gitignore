@@ -3,6 +3,18 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Project specific
+[Pp]ackages/SDL2_ttf-2.0.14/lib
+[Pp]ackages/SDL2_ttf-2.0.14/*.txt
+[Pp]ackages/SDL2-2.0.8/lib
+[Pp]ackages/SDL2-2.0.8/*.txt
+[Pp]ackages/sdl2.v140.2.0.4/
+[Pp]ackages/sdl2.v140.redist.2.0.4/
+*.gz
+*.ttc
+
+#----------------------------------------------------------------------------------
+
 # User-specific files
 *.suo
 *.user
