@@ -98,7 +98,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2-2.0.8\include;C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2-2.0.8\lib\x64;C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\lib\x64;$(LibraryPath)</LibraryPath>
-    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <IncludePath>C:\devkitPro\devkitA64\aarch64-none-elf\include;C:\devkitPro\libnx\include;C:\devkitPro\portlibs\switch\include;$(IncludePath)</IncludePath>
@@ -113,7 +112,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2-2.0.8\lib\x64;C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\lib\x64;$(LibraryPath)</LibraryPath>
     <IncludePath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2-2.0.8\include;C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\include;$(IncludePath)</IncludePath>
-    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <LibraryPath>C:\devkitPro\devkitA64\aarch64-none-elf\lib;C:\devkitPro\libnx\lib;C:\devkitPro\portlibs\switch\lib;$(LibraryPath)</LibraryPath>
@@ -163,8 +161,8 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\Thompson\Documents\VSProjects\SDL\packages\sdl2.v140.2.0.4\build\native\lib\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <OutputFile>$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -186,7 +184,7 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\Thompson\Documents\VSProjects\SDL\packages\sdl2.v140.2.0.4\build\native\lib\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -228,7 +226,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EntryPointSymbol>SDL_main</EntryPointSymbol>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(SolutionDir)$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <OutputFile>$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -297,15 +295,4 @@
     <ClInclude Include="source\game\input.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\sdl2.v140.redist.2.0.4\build\native\sdl2.v140.redist.targets" Condition="Exists('..\packages\sdl2.v140.redist.2.0.4\build\native\sdl2.v140.redist.targets')" />
-    <Import Project="..\packages\sdl2.v140.2.0.4\build\native\sdl2.v140.targets" Condition="Exists('..\packages\sdl2.v140.2.0.4\build\native\sdl2.v140.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\sdl2.v140.redist.2.0.4\build\native\sdl2.v140.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sdl2.v140.redist.2.0.4\build\native\sdl2.v140.redist.targets'))" />
-    <Error Condition="!Exists('..\packages\sdl2.v140.2.0.4\build\native\sdl2.v140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sdl2.v140.2.0.4\build\native\sdl2.v140.targets'))" />
-  </Target>
 </Project>

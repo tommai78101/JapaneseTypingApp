@@ -4,7 +4,11 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # Project specific
-[Pp]ackages/
+[Pp]ackages/*.zip
+[Pp]ackages/*.txt
+[Pp]ackages/*.md
+[Pp]ackages/*/*.txt
+[Pp]ackages/*/docs/
 *.gz
 *.ttc
 */build
@@ -14,6 +18,7 @@
 *.nro
 *.nso
 *.nacp
+.vscode/
 
 #----------------------------------------------------------------------------------
 
@@ -312,3 +317,4 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
