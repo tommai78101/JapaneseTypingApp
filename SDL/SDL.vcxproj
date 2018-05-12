@@ -163,6 +163,7 @@
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <PreBuildEvent>
       <Command>

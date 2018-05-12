@@ -31,6 +31,8 @@
 #include <fstream>
 #include <locale>
 #include <vector>
+#include <thread>
+#include <mutex>
 
 //SDL libraries
 #ifdef __SWITCH__
@@ -41,6 +43,7 @@
 #else
 #	include <SDL.h>
 #	include <SDL_ttf.h>
+#	include <SDL_thread.h>
 #endif
 
 //For anything using size_t, use size_t.

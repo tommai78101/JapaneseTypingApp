@@ -1,10 +1,10 @@
 #include "game/common.h"
 
-#ifndef __SWITCH__
-#	ifdef _WIN32
-#		undef main
-#	endif
-#endif
+//#ifndef __SWITCH__
+//#	ifdef _WIN32
+//#		undef main
+//#	endif
+//#endif
 
 int main(int c, char* v[]) {
 #ifndef __SWITCH__
@@ -17,12 +17,16 @@ int main(int c, char* v[]) {
 	//400 = 300 of playing field + 100 UI at the top.
 	Game game(600, 400, "Hello world");
 
+	//We need to initialize the thread here.
+	game.InitializeThread();
+
 	//Start the game loop.
 	/*while (appletMainLoop()) {
 		if (game.GameLoopTick())
 			break;
 	}*/
-	game.GameLoop();
+	game.GameEventLoop();
+	//game.GameLoop();
 
 #ifndef __SWITCH__
 	}
@@ -34,3 +38,5 @@ int main(int c, char* v[]) {
 #endif
 	return 0;
 }
+
+//

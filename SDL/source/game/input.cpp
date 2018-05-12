@@ -985,7 +985,8 @@ void Input::ConfirmToken() {
 	char* value = glyphTrie->Get(this->tokens);
 	if (value) {
 		//this->game->GetBlock()->ReplaceGlyph(value);
-		this->UpdateGlyphs(value);
+		this->game->StoreGlyphs(value);
+		//this->UpdateGlyphs(value);
 		this->tokens.clear();
 	}
 	else if (this->tokens.size() >= Input::MaxTokenSize) {
@@ -1059,7 +1060,7 @@ void Input::UpdateTokens() {
 		SDL_DestroyTexture(this->tokenTexture);
 	}
 	this->tokenSurface = TTF_RenderUTF8_Solid(this->game->GetFont(), this->tokenString.c_str(), (this->isIncorrect ? SDL_COLOR_Red : SDL_COLOR_Black));
-	this->tokenTexture = SDL_CreateTextureFromSurface(this->game->GetGameRenderer(), tokenSurface);
+	this->tokenTexture = SDL_CreateTextureFromSurface(this->game->GetGameRenderer(), this->tokenSurface);
 	this->tokensDestination = { this->inputboxPosition.x + paddingWidth, this->inputboxPosition.y + paddingHeight, charWidth, charHeight };
 }
 

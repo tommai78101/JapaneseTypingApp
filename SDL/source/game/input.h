@@ -34,10 +34,6 @@ protected:
 	SDL_Surface* glyphSurface;
 	SDL_Texture* glyphTexture;
 
-	//Functions
-	void UpdateTokens();
-	void UpdateGlyphs(char* value);
-
 public:
 	static const int MaxTokenSize = 4;
 
@@ -49,6 +45,10 @@ public:
 	void ClearTokens();
 	void Update();
 	void Render();
+
+	//Game related functions
+	void UpdateTokens();
+	void UpdateGlyphs(char* value);
 
 	//Setters/Getters
 	void SwapInputType();

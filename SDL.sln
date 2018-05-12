@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SDL", "SDL\SDL.vcxproj", "{2E4E2434-A901-4BE3-BF4A-405EAC6BD138}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sandbox", "Sandbox\Sandbox.vcxproj", "{36CA995F-FA1A-4E5F-B083-DC32C4804F40}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM_Switch = Debug|ARM_Switch
@@ -27,6 +29,16 @@ Global
 		{2E4E2434-A901-4BE3-BF4A-405EAC6BD138}.Release|x64.Build.0 = Release|x64
 		{2E4E2434-A901-4BE3-BF4A-405EAC6BD138}.Release|x86.ActiveCfg = Release|Win32
 		{2E4E2434-A901-4BE3-BF4A-405EAC6BD138}.Release|x86.Build.0 = Release|Win32
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Debug|ARM_Switch.ActiveCfg = Debug|Win32
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Debug|x64.ActiveCfg = Debug|x64
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Debug|x64.Build.0 = Debug|x64
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Debug|x86.ActiveCfg = Debug|Win32
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Debug|x86.Build.0 = Debug|Win32
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Release|ARM_Switch.ActiveCfg = Release|Win32
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Release|x64.ActiveCfg = Release|x64
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Release|x64.Build.0 = Release|x64
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Release|x86.ActiveCfg = Release|Win32
+		{36CA995F-FA1A-4E5F-B083-DC32C4804F40}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -170,7 +170,7 @@ endif
 .PHONY: clean all $(BUILD) switch nx
 
 #---------------------------------------------------------------------------------
-all: $(BUILD) nx
+all: $(BUILD)
 
 $(BUILD):
 	@echo build ...
@@ -182,15 +182,11 @@ clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
-switch:
-	@echo build ...
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@nxlink -a 192.168.1.157:5000 $(TARGET).nro
-
 nx:
 	@echo nxlinking ...
-	@nxlink -a 192.168.1.157 $(TARGET).nro
+	@nxlink -a 192.168.1.157 $(compile).nro
+
+switch: $(BUILD) nx
 
 
 #---------------------------------------------------------------------------------

@@ -7,6 +7,14 @@ class Input;
 class Block;
 
 class Game {
+private:
+	//Hidden game related data
+	SDL_GLContext glContext;
+	std::thread renderingThread;
+	std::mutex glyphStorageMutex;
+	std::mutex tokenStorageMutex;
+	void ThreadTask();
+
 protected:
 	//Game input properties
 	std::map<SDL_Scancode, bool> inputs;
@@ -23,6 +31,7 @@ protected:
 	size_t clearColor;
 	bool quitFlag;
 	std::wstring inputString;
+	char* glyphStorages;
 
 	//Game Surface properties
 	uint32_t* pixels;
@@ -33,6 +42,7 @@ protected:
 	SDL_Renderer* gameWindowRenderer;
 	SDL_Texture* mainTexture;
 	SDL_Surface* gameSurface;
+	SDL_Thread* threadId;
 
 	//SDL_ttf stuffs
 	int fontWidth = 0;
@@ -59,11 +69,11 @@ public:
 	Game(int newWidth, int newHeight, std::string title);
 	~Game();
 
-	void Initialize(std::string title);
+	void Initialize();
+	void InitializeThread();
 	bool IsWindowInitialized() const;
 	void GameLoop();
-	bool GameLoopTick();
-	void HandleEvent();
+	void GameEventLoop();
 	void HandleInput();
 	void QuitGame();
 	void Clear();
@@ -71,6 +81,9 @@ public:
 	virtual void Update();
 	virtual void Render();
 	void DrawPixel(uint32_t x, uint32_t y, uint32_t width, uint32_t color);
+
+	//Game related functions
+	void StoreGlyphs(char* value);
 
 	//Getter/Setters
 	size_t GetWidth() const;

@@ -10,6 +10,8 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	this->velocity = {};
 	this->currentUpOrientation = UpOrientation::NORTH;
 	this->clearColor = 0x0;
+	//this->glyphStorageMutex = std::mutex();
+	//this->tokenStorageMutex = std::mutex();
 
 	//SDL objects initialization.
 	//SDL_Init returns a negative size_teger (error) or 0 (success). 
@@ -19,22 +21,29 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	consoleDebugInit(debugDevice_SVC);
 	stdout = stderr;
 
-	//Prepareing ROMFS. (Untested)
+	//Preparing ROMFS. (Untested)
 	Result result = romfsInit();
-	if (R_SUCCEEDED(result)) {
+	if (result != 0) {
+		//Emulated romfs directory
+		std::cerr << DEBUG << "This may be an emulated romfs directory, continuing..." << std::endl;
 		this->dictionaryFile = fopen("romfs:/edict2u", "r");
 		if (!this->dictionaryFile) {
-			std::cout << DEBUG << "FATAL! Something wrong happened." << std::endl;
-			std::cout << DEBUG << "Unable to open the file." << std::endl;
+			std::cerr << DEBUG << "FATAL! Unable to open the file stored on romfs." << std::endl;
+			std::cerr << DEBUG << "Unable to open the file." << std::endl;
+			SDL_Delay(3000);
 			this->QuitGame();
 			return;
 		}
 	}
 	else {
-		std::cout << DEBUG << "FATAL! Something wrong happened." << std::endl;
-		std::cout << DEBUG << "romfsInit result: " << std::hex << result << std::endl;
-		this->QuitGame();
-		return;
+		this->dictionaryFile = fopen("romfs:/edict2u", "r");
+		if (!this->dictionaryFile) {
+			std::cerr << DEBUG << "FATAL! Unable to open the file stored on romfs." << std::endl;
+			std::cerr << DEBUG << "Unable to open the file." << std::endl;
+			SDL_Delay(3000);
+			this->QuitGame();
+			return;
+		}
 	}
 
 	// mandatory at least on switch, else gfx is not properly closed
@@ -49,19 +58,109 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	}
 #endif
 
-	//Initialize the game window.
-	this->Initialize(title);
-
 	//SDL_ttf initialization.
 	if (TTF_WasInit() <= 0 && TTF_Init() < 0) {
 		std::cout << "SDL_ttf Error: " << TTF_GetError() << std::endl;
 		return;
 	}
+
+	//Obtain the display mode, so we can get the properties of our game screen boundaries. 
+	//(Finding the max limitations)
+	SDL_DisplayMode currentDisplayMode;
+	int shouldBeZero = 0;
+	for (int i = 0; i < SDL_GetNumVideoDisplays(); i++) {
+		shouldBeZero = SDL_GetCurrentDisplayMode(i, &currentDisplayMode);
+		if (shouldBeZero == 0) {
+			break;
+		}
+		std::cout << "Could not get display mode for video display " << i << ": " << SDL_GetError() << std::endl;
+	}
+	if (shouldBeZero != 0) {
+		this->QuitGame();
+		return;
+	}
+
+	//We then use the known display properties to determine the absolute screen position on the display, 
+	//then take our application title and the size_tended game screen size Then, we and show it to the user.
+	this->gameWindow = SDL_CreateWindow(title.c_str(), (currentDisplayMode.w - static_cast<int>(this->width)) / 2, (currentDisplayMode.h - static_cast<int>(this->height)) / 2, static_cast<int>(this->width), static_cast<int>(this->height), SDL_WINDOW_SHOWN);
+}
+
+Game::~Game() {
+	//Handles game memory de-allocation
+	//SDL objects
+	this->pixels = nullptr;
+	if (this->gameSurface) {
+		SDL_FreeSurface(this->gameSurface);
+		this->gameSurface = nullptr;
+	}
+	if (this->mainTexture) {
+		SDL_DestroyTexture(this->mainTexture);
+		this->mainTexture = nullptr;
+	}
+	if (this->gameWindowRenderer) {
+		SDL_DestroyRenderer(this->gameWindowRenderer);
+		this->gameWindowRenderer = nullptr;
+	}
+	if (this->gameWindow) {
+		SDL_DestroyWindow(this->gameWindow);
+		this->gameWindow = nullptr;
+	}
+
+	//SDL_ttf objects
+	TTF_CloseFont(this->defaultFont);
+
+	//Non-SDL objects
+	if (this->block) {
+		delete this->block;
+		this->block = nullptr;
+	}
+	if (this->inputSystem) {
+		delete this->inputSystem;
+		this->inputSystem = nullptr;
+	}
+	//if (this->drawSystem) {
+	//	delete this->drawSystem;
+	//	this->drawSystem = nullptr;
+	//}
+
+#ifdef __SWITCH__
+	romfsExit();
+#endif
+
+	//SDL library
+	TTF_Quit();				//SDL_ttf
+	SDL_Quit();				//SDL
+}
+
+void Game::InitializeThread() {
+	this->quitFlag = false;
+	this->glContext = SDL_GL_GetCurrentContext();
+	SDL_GL_MakeCurrent(this->gameWindow, nullptr);
+	this->renderingThread = std::thread(&Game::ThreadTask, this);
+}
+
+void Game::ThreadTask() {
+	SDL_GL_MakeCurrent(this->gameWindow, this->glContext);
+
+	//We create a SDL renderer that we can bind to the game window, on the rendering thread.
+#ifdef __SWITCH__
+	this->gameWindowRenderer = SDL_CreateRenderer(this->gameWindow, -1, SDL_RENDERER_SOFTWARE);
+#else
+	this->gameWindowRenderer = SDL_CreateRenderer(this->gameWindow, -1, SDL_RENDERER_ACCELERATED);
+#endif
+
+	this->Initialize();
+	this->GameLoop();
+}
+
+void Game::Initialize() {
+	// Initializing the fonts.
 #ifdef __SWITCH__
 	this->defaultFont = TTF_OpenFontRW(SDL_RWFromMem((void *) JapanSans_ttf, JapanSans_ttf_size), 1, 36);
 #else
 	this->defaultFont = TTF_OpenFont(FONTPATH, 36);
 #endif
+
 #ifdef _WIN32
 	if (this->defaultFont == nullptr) {
 		std::cerr << "Unable to find the font." << std::endl;
@@ -84,6 +183,29 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	}
 #endif
 
+	//We create a SDL surface that we can use to send over to the SDL renderer to draw in the game window.
+	this->gameSurface = SDLHelper_CreateSurface(static_cast<int>(this->width / this->scale), static_cast<int>(this->height / this->scale), 32);
+	if (this->gameSurface == nullptr) {
+		//We output the errors and then force-quit the game.
+		std::cout << "SDL_CreateRGBSurface: " << SDL_GetError() << std::endl;
+		this->QuitGame();
+		return;
+	}
+	this->pitch = this->gameSurface->pitch;
+
+	//The SDL surface's "pixels" variable is a void pointer to an array of pixels. We need to first convert the type
+	//of the posize_ter to something that we can manage easily.
+	this->pixels = static_cast<uint32_t*>(this->gameSurface->pixels);
+
+	//Using the SDL renderer, we use the SDL surface to create a SDL texture. Output error and force-quit the game,
+	//if there are any errors.
+	this->mainTexture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
+	if (this->mainTexture == nullptr) {
+		std::cout << "SDL_CreateTextureFromSurface: " << SDL_GetError() << std::endl;
+		this->QuitGame();
+		return;
+	}
+
 	//Input system initialization
 	this->inputSystem = new Input(this);
 
@@ -105,6 +227,7 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 		bool skipFirstLine = true;
 		uint32_t currentLine = 0;
 		uint32_t oldPercent = 0;
+		SDL_Event tempEvent;
 		while (std::getline(edict2, buffer)) {
 			currentLine++;
 
@@ -146,82 +269,6 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 			buffer.clear();
 		};
 	}
-}
-
-Game::~Game() {
-	//Handles game memory de-allocation
-	//SDL objects
-	this->pixels = nullptr;
-	if (this->gameSurface) {
-		SDL_FreeSurface(this->gameSurface);
-		this->gameSurface = nullptr;
-	}
-	if (this->mainTexture) {
-		SDL_DestroyTexture(this->mainTexture);
-		this->mainTexture = nullptr;
-	}
-	if (this->gameWindowRenderer) {
-		SDL_DestroyRenderer(this->gameWindowRenderer);
-		this->gameWindowRenderer = nullptr;
-	}
-	if (this->gameWindow) {
-		SDL_DestroyWindow(this->gameWindow);
-		this->gameWindow = nullptr;
-	}
-
-	//SDL_ttf objects
-	TTF_CloseFont(this->defaultFont);
-
-	//Non-SDL objects
-	if (this->block) {
-		delete this->block;
-		this->block = nullptr;
-	}
-	if (this->inputSystem) {
-		delete this->inputSystem;
-		this->inputSystem = nullptr;
-	}
-	//if (this->drawSystem) {
-	//	delete this->drawSystem;
-	//	this->drawSystem = nullptr;
-	//}
-
-	//SDL library
-	TTF_Quit();				//SDL_ttf
-	SDL_Quit();				//SDL
-}
-
-void Game::Initialize(std::string title) {
-	//Obtain the display mode, so we can get the properties of our game screen boundaries. 
-	//(Finding the max limitations)
-	SDL_DisplayMode currentDisplayMode;
-	for (int i = 0; i < SDL_GetNumVideoDisplays(); i++) {
-		int shouldBeZero = SDL_GetCurrentDisplayMode(i, &currentDisplayMode);
-		if (shouldBeZero == 0) {
-			break;
-		}
-		std::cout << "Could not get display mode for video display " << i << ": " << SDL_GetError() << std::endl;
-	}
-
-	//We then use the known display properties to determine the absolute screen position on the display, 
-	//then take our application title and the size_tended game screen size Then, we and show it to the user.
-	this->gameWindow = SDL_CreateWindow(title.c_str(), (currentDisplayMode.w - static_cast<int>(this->width)) / 2, (currentDisplayMode.h - static_cast<int>(this->height)) / 2, static_cast<int>(this->width), static_cast<int>(this->height), SDL_WINDOW_SHOWN);
-
-	//We create a SDL renderer that we can bind to the game window.
-#ifdef __SWITCH__
-	this->gameWindowRenderer = SDL_CreateRenderer(this->gameWindow, -1, SDL_RENDERER_SOFTWARE);
-#else
-	this->gameWindowRenderer = SDL_CreateRenderer(this->gameWindow, -1, SDL_RENDERER_ACCELERATED);
-#endif
-
-	//We create a SDL surface that we can use to send over to the SDL renderer to draw in the game window.
-	this->gameSurface = SDLHelper_CreateSurface(static_cast<int>(this->width / this->scale), static_cast<int>(this->height / this->scale), 32);
-	if (this->gameSurface == nullptr) {
-		//We output the errors and then force-quit the game.
-		std::cout << "SDL_CreateRGBSurface: " << SDL_GetError() << std::endl;
-		this->QuitGame();
-	}
-	this->pitch = this->gameSurface->pitch;
 
 	////We first need to determine the size of the fonts in pixels.
 	//std::wstring testText(L"おはいよ！");
@@ -251,68 +298,15 @@ void Game::Initialize(std::string title) {
 	//tempFont = TTF_RenderUNICODE_Blended(this->defaultFont, utext.c_str(), color);
 	//this->fontSurfaceBlended = SDL_CreateTextureFromSurface(this->gameWindowRenderer, tempFont);
 
-	//The SDL surface's "pixels" variable is a void pointer to an array of pixels. We need to first convert the type
-	//of the posize_ter to something that we can manage easily.
-	this->pixels = static_cast<uint32_t*>(this->gameSurface->pixels);
-
-	//Using the SDL renderer, we use the SDL surface to create a SDL texture. Output error and force-quit the game,
-	//if there are any errors.
-	this->mainTexture = SDL_CreateTextureFromSurface(this->gameWindowRenderer, this->gameSurface);
-	if (this->mainTexture == nullptr) {
-		std::cout << "SDL_CreateTextureFromSurface: " << SDL_GetError() << std::endl;
-		this->QuitGame();
-	}
 
 	//Non-SDL objects initialization.
 	//this->drawSystem = new Draw(this, 1.0f);
 	//this->block = new Block(this->gameWindowRenderer, this->defaultFont, Convert(L"あ"));
-	this->block = new Block(this->gameWindowRenderer, this->defaultFont, u8"あ");
+	this->block = new Block(this->gameWindowRenderer, this->defaultFont, const_cast<char*>(u8"あ"));
 }
 
 bool Game::IsWindowInitialized() const {
 	return (this->gameWindow != nullptr);
-}
-
-bool Game::GameLoopTick() {
-	//Prepare the necessary timing calculations
-	uint64_t performanceCounterFrequency = SDL_GetPerformanceFrequency();
-	uint64_t lastPerformanceCounter = SDL_GetPerformanceCounter();
-	uint64_t currentPerformanceCounter = SDL_GetPerformanceCounter();
-
-	//We set the default render draw color to black. Mainly used as a way to clear the screen.
-	SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 0, 255);
-
-	//Main game loop. Loops while checking if the quitFlag is not set
-	if (!this->quitFlag) {
-		//Calculating each tick's elapsed time, and use this to update the game according to the 
-		//remaining ticks available that should be used to update the game with.
-		currentPerformanceCounter = SDL_GetPerformanceCounter();
-		uint64_t counterElapsed = static_cast<uint64_t>((currentPerformanceCounter - lastPerformanceCounter) * 1000.0);
-		//double millisecondsPerFrame = (1000.0 * (double) counterElapsed) / (double) performanceCounterFrequency;
-		//double framesPerSecond = (double) performanceCounterFrequency / (double) counterElapsed;
-		double counterElapsedBySecond = static_cast<double>(counterElapsed / performanceCounterFrequency);
-		while (counterElapsedBySecond > 0.0) {
-			this->Update();
-			counterElapsedBySecond -= 1.0;
-		}
-
-		//Once the update tick is finished, we then draw 1 frame to the screen.
-		this->Render();
-
-		//After drawing 1 frame, we handle the user inputs. Theoretically, user inputs happen only
-		//after the user has seen the rendered gameplay feedback, thus we put the input polling function
-		//here to simulate that theory.
-		this->HandleEvent();
-
-		//We update the last known time counter derived from the above timing calculations for the update tick.
-		lastPerformanceCounter = currentPerformanceCounter;
-
-		//We give back the CPU its own time, and delay our game up to that posize_t. This is to prevent the CPU
-		//from being hogged up by our game, avoiding the main thread (kernel thread) to be overtaken for rendering our game.
-		SDL_Delay(1);
-	}
-
-	return this->quitFlag;
 }
 
 void Game::GameLoop() {
@@ -341,11 +335,6 @@ void Game::GameLoop() {
 		//Once the update tick is finished, we then draw 1 frame to the screen.
 		this->Render();
 
-		//After drawing 1 frame, we handle the user inputs. Theoretically, user inputs happen only
-		//after the user has seen the rendered gameplay feedback, thus we put the input polling function
-		//here to simulate that theory.
-		this->HandleEvent();
-
 		//We update the last known time counter derived from the above timing calculations for the update tick.
 		lastPerformanceCounter = currentPerformanceCounter;
 
@@ -353,6 +342,8 @@ void Game::GameLoop() {
 		//from being hogged up by our game, avoiding the main thread (kernel thread) to be overtaken for rendering our game.
 		SDL_Delay(1);
 	}
+
+	//Rendering thread should join to the main thread.
 }
 
 void Game::Update() {
@@ -411,77 +402,84 @@ void Game::DrawPixel(uint32_t x, uint32_t y, uint32_t width, uint32_t color) {
 	this->pixels[y * width + x] = color;
 }
 
-void Game::HandleEvent() {
+void Game::GameEventLoop() {
+	//We handle the user inputs on the main thread. Theoretically, user inputs happen only
+	//after the user has seen the rendered gameplay feedback, thus we put the input polling function
+	//here to simulate that theory.
+
 	SDL_Event gameEvent;
 	bool isKeyDown = false;
-	while (SDL_PollEvent(&gameEvent)) {
-		switch (gameEvent.type) {
-			case SDL_WINDOWEVENT: {
-				switch (gameEvent.window.event) {
-					case SDL_WINDOWEVENT_CLOSE: {
-						this->QuitGame();
-						break;
-					}
-				}
-				break;
-			}
-			case SDL_KEYDOWN: {
-				if (!gameEvent.key.repeat) {
-					if ((gameEvent.key.keysym.sym >= SDLK_a && gameEvent.key.keysym.sym <= SDLK_z) || (gameEvent.key.keysym.sym == SDLK_MINUS)) {
-						std::cout << "Hit " << gameEvent.key.keysym.sym << std::endl;
-						this->inputSystem->HandleValidInputs(gameEvent.key.keysym.sym);
-						this->inputSystem->ConfirmToken();
-					}
-					else {
-						switch (gameEvent.key.keysym.sym) {
-							case SDLK_BACKSPACE: {
-								//Handle backspace
-								std::vector<SDL_Keycode>* tokens = this->inputSystem->GetTokens();
-								if (!tokens->empty()) {
-									tokens->pop_back();
-								}
-								break;
-							}
-							case SDLK_RETURN:
-								//Enter key to confirm the inputs.
-								this->inputSystem->ConfirmToken();
-								break;
-							default:
-								this->inputs[gameEvent.key.keysym.scancode] = true;
-								break;
+	while (!this->quitFlag) {
+		while (SDL_PollEvent(&gameEvent)) {
+			switch (gameEvent.type) {
+				case SDL_WINDOWEVENT: {
+					switch (gameEvent.window.event) {
+						case SDL_WINDOWEVENT_CLOSE: {
+							this->QuitGame();
+							break;
 						}
 					}
+					break;
 				}
-				break;
-			}
-			case SDL_KEYUP: {
-				bool alt = this->inputs[SDL_SCANCODE_RALT] || this->inputs[SDL_SCANCODE_LALT];
-				bool ctrl = this->inputs[SDL_SCANCODE_RCTRL] || this->inputs[SDL_SCANCODE_LCTRL];
-				if (alt && ctrl) {
-					this->inputSystem->SwapInputType();
+				case SDL_KEYDOWN: {
+					if (!gameEvent.key.repeat) {
+						if ((gameEvent.key.keysym.sym >= SDLK_a && gameEvent.key.keysym.sym <= SDLK_z) || (gameEvent.key.keysym.sym == SDLK_MINUS)) {
+							std::cout << "Hit " << gameEvent.key.keysym.sym << std::endl;
+							this->inputSystem->HandleValidInputs(gameEvent.key.keysym.sym);
+							this->inputSystem->ConfirmToken();
+						}
+						else {
+							switch (gameEvent.key.keysym.sym) {
+								case SDLK_BACKSPACE: {
+									//Handle backspace
+									std::vector<SDL_Keycode>* tokens = this->inputSystem->GetTokens();
+									if (!tokens->empty()) {
+										tokens->pop_back();
+									}
+									break;
+								}
+								case SDLK_RETURN:
+									//Enter key to confirm the inputs.
+									this->inputSystem->ConfirmToken();
+									break;
+								default:
+									this->inputs[gameEvent.key.keysym.scancode] = true;
+									break;
+							}
+						}
+					}
+					break;
 				}
-				this->inputs[gameEvent.key.keysym.scancode] = false;
-				break;
-			}
+				case SDL_KEYUP: {
+					bool alt = this->inputs[SDL_SCANCODE_RALT] || this->inputs[SDL_SCANCODE_LALT];
+					bool ctrl = this->inputs[SDL_SCANCODE_RCTRL] || this->inputs[SDL_SCANCODE_LCTRL];
+					if (alt && ctrl) {
+						this->inputSystem->SwapInputType();
+					}
+					this->inputs[gameEvent.key.keysym.scancode] = false;
+					break;
+				}
 #ifdef __SWITCH__
-			case SDL_JOYAXISMOTION: {
-				Print("%sJoystick %d axis %d value: %d\n", DEBUG, gameEvent.jaxis.which, gameEvent.jaxis.axis, gameEvent.jaxis.value);
-				break;
-			}
-			case SDL_JOYBUTTONDOWN: {
-				// https://github.com/devkitPro/SDL/blob/switch-sdl2/src/joystick/switch/SDL_sysjoystick.c#L51
-				Print("%sJoystick %d button %d down\n", DEBUG, gameEvent.jbutton.which, gameEvent.jbutton.button);
-				if (gameEvent.jbutton.which == 0 && (gameEvent.jbutton.button == JoyconButtons::KEY_A || gameEvent.jbutton.button == JoyconButtons::KEY_PLUS))
-					this->QuitGame();
-				break;
-			}
+				case SDL_JOYAXISMOTION: {
+					Print("%sJoystick %d axis %d value: %d\n", DEBUG, gameEvent.jaxis.which, gameEvent.jaxis.axis, gameEvent.jaxis.value);
+					break;
+				}
+				case SDL_JOYBUTTONDOWN: {
+					// https://github.com/devkitPro/SDL/blob/switch-sdl2/src/joystick/switch/SDL_sysjoystick.c#L51
+					Print("%sJoystick %d button %d down\n", DEBUG, gameEvent.jbutton.which, gameEvent.jbutton.button);
+					if (gameEvent.jbutton.which == 0 && (gameEvent.jbutton.button == JoyconButtons::KEY_A || gameEvent.jbutton.button == JoyconButtons::KEY_PLUS))
+						this->QuitGame();
+					break;
+				}
 #endif
+			}
 		}
 	}
 }
 
 void Game::QuitGame() {
 	this->quitFlag = true;
+	this->renderingThread.join();
 }
 
 void Game::Clear() {
@@ -578,4 +576,10 @@ Input* Game::GetInput() {
 
 Block* Game::GetBlock() {
 	return this->block;
+}
+
+void Game::StoreGlyphs(char* value) {
+	this->glyphStorageMutex.lock();
+	this->GetInput()->UpdateGlyphs(value);
+	this->glyphStorageMutex.unlock();
 }
