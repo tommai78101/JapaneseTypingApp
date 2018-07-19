@@ -302,7 +302,7 @@ void Game::Initialize() {
 	//Non-SDL objects initialization.
 	//this->drawSystem = new Draw(this, 1.0f);
 	//this->block = new Block(this->gameWindowRenderer, this->defaultFont, Convert(L"あ"));
-	this->block = new Block(this->gameWindowRenderer, this->defaultFont, const_cast<char*>(u8"あ"));
+	this->block = new Block(this->gameWindowRenderer, this->defaultFont, const_cast<char*>(Japanese::Hiragana::a));
 }
 
 bool Game::IsWindowInitialized() const {
