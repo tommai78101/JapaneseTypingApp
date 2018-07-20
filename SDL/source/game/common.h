@@ -1041,6 +1041,18 @@ struct Japanese {
 		static inline const char* vya = u8"ヴゃ";
 		static inline const char* vyu = u8"ヴゅ";
 		static inline const char* vyo = u8"ヴょ";
+
+		//Hiragana class stuffs
+		static inline const char* List[] = {
+			u8"あ", u8"ぁ", u8"い", u8"ぃ", u8"いぇ", u8"う", u8"ぅ", u8"うぁ", u8"うぃ", u8"うぇ", u8"うぉ", u8"え", u8"ぇ", u8"お", u8"ぉ", u8"か", u8"ゕ", u8"き", u8"きぃ", u8"きぇ", u8"きゃ", u8"きゅ", u8"きょ", u8"く", u8"くぁ", u8"くぃ", u8"くぅ", u8"くぇ", u8"くぉ", u8"くゃ", u8"くゅ", u8"くょ", u8"け", u8"ゖ", u8"こ", u8"さ", u8"し", u8"しぃ", u8"しぇ", u8"しゃ", u8"しゅ", u8"しょ", u8"す", u8"すぁ", u8"すぃ", u8"すぅ", u8"すぇ", u8"すぉ", u8"せ", u8"そ", u8"た", u8"ち", u8"ちぃ", u8"ちぇ", u8"ちゃ", u8"ちゅ", u8"ちょ", u8"つ", u8"つぁ", u8"つぃ", u8"つぇ", u8"つぉ", u8"っ", u8"て", u8"てぃ", u8"てぇ", u8"てゃ", u8"てゅ", u8"てょ", u8"と", u8"とぁ", u8"とぃ", u8"とぅ", u8"とぇ", u8"とぉ", u8"な", u8"に", u8"にぃ", u8"にぇ", u8"にゃ", u8"にゅ", u8"にょ", u8"ぬ", u8"ね", u8"の", u8"は", u8"ひ", u8"ひぃ", u8"ひぇ", u8"ひゃ", u8"ひゅ", u8"ひょ", u8"ふ", u8"ふぁ", u8"ふぃ", u8"ふぅ", u8"ふぇ", u8"ふぉ", u8"ふゃ", u8"ふゅ", u8"ふょ", u8"へ", u8"ほ", u8"ま", u8"み", u8"みぃ", u8"みぇ", u8"みゃ", u8"みゅ", u8"みょ", u8"む", u8"め", u8"も", u8"や", u8"ゃ", u8"ゆ", u8"ゅ", u8"よ", u8"ょ", u8"ら", u8"り", u8"りぃ", u8"りぇ", u8"りゃ", u8"りゅ", u8"りょ", u8"る", u8"れ", u8"ろ", u8"わ", u8"ゎ", u8"ゐ", u8"ゑ", u8"を", u8"ん", u8"が", u8"ぎ", u8"ぎぃ", u8"ぎぇ", u8"ぎゃ", u8"ぎゅ", u8"ぎょ", u8"ぐ", u8"ぐぁ", u8"ぐぃ", u8"ぐぅ", u8"ぐぇ", u8"ぐぉ", u8"げ", u8"ご", u8"さ", u8"じ", u8"じぃ", u8"じぇ", u8"じゃ", u8"じゅ", u8"じょ", u8"ず", u8"ぜ", u8"ぞ", u8"だ", u8"ぢ", u8"ぢぃ", u8"ぢぇ", u8"ぢゃ", u8"ぢゅ", u8"ぢょ", u8"づ", u8"で", u8"でぃ", u8"でぇ", u8"でゃ", u8"でゅ", u8"でょ", u8"ど", u8"どぁ", u8"どぃ", u8"どぅ", u8"どぇ", u8"どぉ", u8"ば", u8"ぱ", u8"び", u8"びぃ", u8"びぇ", u8"びゃ", u8"びゅ", u8"びょ", u8"ぴ", u8"ぴぃ", u8"ぴぇ", u8"ぴゃ", u8"ぴゅ", u8"ぴょ", u8"ぶ", u8"ぷ", u8"べ", u8"ぺ", u8"ぼ", u8"ぽ", u8"ヴぁ", u8"ヴぃ", u8"ヴぇ", u8"ヴぉ", u8"ヴゃ", u8"ヴゅ", u8"ヴょ"
+		};
+
+		static int GetIndex(const char* value) {
+			int i = 0;
+			while(i < Japanese::SizeUnique && strcmp(Japanese::Hiragana::List[i], value) != 0)
+				i++;
+			return i;
+		}
 	};
 
 	struct Katakana {
@@ -1494,6 +1506,18 @@ struct Japanese {
 		static inline const char* vya = u8"ヴャ";
 		static inline const char* vyu = u8"ヴュ";
 		static inline const char* vyo = u8"ヴョ";
+
+		//Katakana class stuffs
+		static inline const char* List[] = {
+			u8"ア", u8"ァ", u8"イ", u8"ィ", u8"イェ", u8"ウ", u8"ゥ", u8"ウァ", u8"ウィ", u8"ウェ", u8"ウォ", u8"エ", u8"ェ", u8"オ", u8"ォ", u8"カ", u8"ヵ", u8"キ", u8"キィ", u8"キェ", u8"キャ", u8"キュ", u8"キョ", u8"ク", u8"クァ", u8"クィ", u8"クゥ", u8"クェ", u8"クォ", u8"クャ", u8"クュ", u8"クョ", u8"ケ", u8"ヶ", u8"コ", u8"サ", u8"シ", u8"シィ", u8"シェ", u8"シャ", u8"シュ", u8"ショ", u8"ス", u8"スァ", u8"スィ", u8"スゥ", u8"スェ", u8"スォ", u8"セ", u8"ソ", u8"タ", u8"チ", u8"チィ", u8"チェ", u8"チャ", u8"チュ", u8"チョ", u8"ツ", u8"ツァ", u8"ツィ", u8"ツェ", u8"ツォ", u8"ッ", u8"テ", u8"ティ", u8"テェ", u8"テャ", u8"テュ", u8"テョ", u8"ト", u8"トァ", u8"トィ", u8"トゥ", u8"トェ", u8"トォ", u8"ナ", u8"ニ", u8"ニィ", u8"ニェ", u8"ニャ", u8"ニュ", u8"ニョ", u8"ヌ", u8"ネ", u8"ノ", u8"ハ", u8"ヒ", u8"ヒィ", u8"ヒェ", u8"ヒャ", u8"ヒュ", u8"ヒョ", u8"フ", u8"ファ", u8"フィ", u8"フゥ", u8"フェ", u8"フォ", u8"フャ", u8"フュ", u8"フョ", u8"ヘ", u8"ホ", u8"マ", u8"ミ", u8"ミィ", u8"ミェ", u8"ミャ", u8"ミュ", u8"ミョ", u8"ム", u8"メ", u8"モ", u8"ヤ", u8"ャ", u8"ユ", u8"ュ", u8"ヨ", u8"ョ", u8"ラ", u8"リ", u8"リィ", u8"リェ", u8"リャ", u8"リュ", u8"リョ", u8"ル", u8"レ", u8"ロ", u8"ワ", u8"ヮ", u8"ヰ", u8"ヱ", u8"ヲ", u8"ン", u8"ガ", u8"ギ", u8"ギィ", u8"ギェ", u8"ギャ", u8"ギュ", u8"ギョ", u8"グ", u8"グァ", u8"グィ", u8"グゥ", u8"グェ", u8"グォ", u8"ゲ", u8"ゴ", u8"ジ", u8"ジィ", u8"ジェ", u8"ジャ", u8"ジュ", u8"ジョ", u8"ズ", u8"ゼ", u8"ゾ", u8"ダ", u8"ヂ", u8"ヂィ", u8"ヂェ", u8"ヂャ", u8"ヂュ", u8"ヂョ", u8"ヅ", u8"デ", u8"ディ", u8"デェ", u8"デャ", u8"デュ", u8"デョ", u8"ド", u8"ドァ", u8"ドィ", u8"ドゥ", u8"ドェ", u8"ドォ", u8"バ", u8"パ", u8"ビ", u8"ビィ", u8"ビェ", u8"ビャ", u8"ビュ", u8"ビョ", u8"ピ", u8"ピィ", u8"ピェ", u8"ピャ", u8"ピュ", u8"ピョ", u8"ブ", u8"プ", u8"ベ", u8"ペ", u8"ボ", u8"ポ", u8"ヴァ", u8"ヴィ", u8"ヴェ", u8"ヴォ", u8"ヴャ", u8"ヴュ", u8"ヴョ"
+		};
+
+		static int GetIndex(const char* value) {
+			int i = 0;
+			while(i < Japanese::SizeUnique && strcmp(Japanese::Katakana::List[i], value) != 0)
+				i++;
+			return i;
+		}
 	};
 
 	//Combinations not from the basic Hiragana Table, basic Katakana Table and the modifiers
@@ -1501,6 +1525,11 @@ struct Japanese {
 	static inline const char* HYPHEN = u8"ー";
 	static inline const char* MINUS = u8"ー";
 	static inline const char* PAUSE = u8"ー";
+
+	//Counting all pronunciations.
+	static const int SizeAll = 278;
+	//Counting all unique pronunciations
+	static const int SizeUnique = 206;
 };
 
 //C++ class headers.
