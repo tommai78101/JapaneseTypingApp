@@ -15,7 +15,7 @@ class Game;
 class Draw {
 protected:
 	Game* game;
-	uint32_t* pixels;
+	uint32_t* pixels = nullptr;
 	float drawScale;
 	SDL_Surface* gameSurface;
 	SDL_Texture* gameTexture;

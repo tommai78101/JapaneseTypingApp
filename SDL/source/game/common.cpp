@@ -67,18 +67,20 @@ void KeyCodeTrieNode::Clear() {
 
 void KeyCodeTrie::Insert(std::vector<SDL_Keycode>& value, char* leafValue) {
 	KeyCodeTrieNode* iterator = this->root;
-	for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
-		std::ptrdiff_t diff = std::distance(value.begin(), it);
-		SDL_Keycode child = *(value.begin() + diff);
-		KeyCodeTrieNode* node = iterator->SearchChild(child);
-		if (!node) {
-			node = new KeyCodeTrieNode();
-			node->value = child;
-			iterator->children.push_back(node);
+	if (iterator) {
+		for (std::vector<SDL_Keycode>::iterator it = value.begin(); iterator && it != value.end(); it++) {
+			std::ptrdiff_t diff = std::distance(value.begin(), it);
+			SDL_Keycode child = *(value.begin() + diff);
+			KeyCodeTrieNode * node = iterator->SearchChild(child);
+			if (!node) {
+				node = new KeyCodeTrieNode();
+				node->value = child;
+				iterator->children.push_back(node);
+			}
+			iterator = node;
 		}
-		iterator = node;
+		iterator->leafValue = leafValue;
 	}
-	iterator->leafValue = leafValue;
 }
 
 bool KeyCodeTrie::Contains(std::vector<SDL_Keycode>& value) {
@@ -231,7 +233,7 @@ std::string VocabularyTrie::GetPronunciation(std::u32string& value) {
 		Convert_utf32_utf8(iterator->pronunciation, strResult);
 		return strResult;
 	}
-	return nullptr;
+	return std::string();
 }
 
 std::string VocabularyTrie::GetDefinition(std::string& value) {
@@ -259,7 +261,7 @@ std::string VocabularyTrie::GetDefinition(std::u32string& value) {
 		Convert_utf32_utf8(iterator->englishDefinition, strResult);
 		return strResult;
 	}
-	return nullptr;
+	return "";
 }
 
 VocabularyTrieNode* VocabularyTrie::GetNode(std::string& value) {

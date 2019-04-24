@@ -17,17 +17,15 @@
 //}
 
 Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, char* str) {
-	this->blockSurface = SDLHelper_CreateSurface(this->BlockSize, this->BlockSize, 32);
-
-	//Block class properties
-	this->pixels = this->blockSurface->pixels;
+	//Initialized by parameter arguments.
 	this->gameRenderer = gameRenderer;
-	this->blockTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->blockSurface);
-	this->positionX = 0;
-	this->positionY = 0;
-	this->color = {};
 	this->font = font;
 	this->ReplaceGlyph(str);
+
+	//Block class properties initialized using other methods.
+	this->blockSurface = SDLHelper_CreateSurface(this->BlockSize, this->BlockSize, 32);
+	this->pixels = this->blockSurface->pixels;
+	this->blockTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->blockSurface);
 }
 
 Block::~Block() {

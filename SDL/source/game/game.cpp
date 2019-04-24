@@ -1,7 +1,6 @@
 ﻿#include "game.h"
 
-Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello world") : 
-		gameWindow(nullptr), gameWindowRenderer(nullptr), quitFlag(false), width(newWidth), height(newHeight), pixels(nullptr), scale(8), dictionaryFile(nullptr) {
+Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello world") : width(newWidth), height(newHeight) {
 	//Setting up random numbers.
 	srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -66,7 +65,7 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 
 	//Obtain the display mode, so we can get the properties of our game screen boundaries. 
 	//(Finding the max limitations)
-	SDL_DisplayMode currentDisplayMode;
+	SDL_DisplayMode currentDisplayMode = {};
 	int shouldBeZero = 0;
 	for (int i = 0; i < SDL_GetNumVideoDisplays(); i++) {
 		shouldBeZero = SDL_GetCurrentDisplayMode(i, &currentDisplayMode);
@@ -227,7 +226,7 @@ void Game::Initialize() {
 		bool skipFirstLine = true;
 		uint32_t currentLine = 0;
 		uint32_t oldPercent = 0;
-		SDL_Event tempEvent;
+		//SDL_Event tempEvent;
 		while (std::getline(edict2, buffer)) {
 			currentLine++;
 

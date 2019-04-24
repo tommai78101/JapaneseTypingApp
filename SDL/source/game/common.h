@@ -69,15 +69,15 @@ enum UpOrientation {
 
 //strcpy_s
 template<typename C>
-inline int strcpy_s(C*d, unsigned long dmax, const C*s) { 
-	if (dmax <= 1 || !d) { 
+inline int strcpy_s(C* d, unsigned long dmax, const C* s) {
+	if (dmax <= 1 || !d) {
 		if (!d || !dmax)
 			return -1;
-		*d = C(0); 
-		return 0; 
+		*d = C(0);
+		return 0;
 	}
-	for (C*de = d + dmax - 1; (d != de || (*d = C(0))) && (*d = *s); ++d, ++s); 
-	return 0; 
+	for (C* de = d + dmax - 1; (d != de || (*d = C(0))) && (*d = *s); ++d, ++s);
+	return 0;
 }
 
 //strdup wrapper
@@ -99,8 +99,8 @@ static void Print(const char* format, ...) {
 }
 
 //Unicode Substrings
-extern std::string SubstringUpToFirstUTF8(std::string& value, char* firstContainer);
-extern std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* lastContainer);
+extern std::string SubstringUpToFirstUTF8(std::string & value, char* firstContainer);
+extern std::string SubstringInsideUTF8(std::string & value, char* firstContainer, char* lastContainer);
 
 static bool IsLittleEndian() {
 	uint16_t x = 0x0001;
@@ -122,7 +122,7 @@ static SDL_Surface* SDLHelper_CreateSurface(int width, int height, int depth) {
 	return SDL_CreateRGBSurface(0, width, height, depth, RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
 }
 
-static void ParseLine(std::u32string& formattedLine, std::vector<std::u32string>& vocabulary, std::vector<std::u32string>& pronunciation, std::u32string& definition) {
+static void ParseLine(std::u32string & formattedLine, std::vector<std::u32string> & vocabulary, std::vector<std::u32string> & pronunciation, std::u32string & definition) {
 	//Custom string parser, suitable only for extracting information from the EDICT2 (UTF-8) file.
 	bool vocabularyExtracted = false;
 	bool pronunciationExtracted = false;
@@ -130,14 +130,14 @@ static void ParseLine(std::u32string& formattedLine, std::vector<std::u32string>
 	bool pronunciationMarked = false;
 	bool definitionMarked = false;
 	std::u32string token;
-	for (unsigned int i = 0; i < formattedLine.size(); i++) {
+	for (size_t i = 0; i < formattedLine.size(); i++) {
 		if (!vocabularyExtracted) {
 			if (formattedLine[i] != U' ' && formattedLine[i + 1] != U'[') {
 				if (formattedLine[i] == U';') {
 					vocabulary.push_back(token);
 					token.clear();
 				}
-				else if (formattedLine[i] == U'(' && formattedLine[i+1] == U'i' && formattedLine[i+2] == U'K' && formattedLine[i+3] == U')') {
+				else if (formattedLine[i] == U'(' && formattedLine[i + 1] == U'i' && formattedLine[i + 2] == U'K' && formattedLine[i + 3] == U')') {
 					i += 3;
 				}
 				else {
@@ -191,9 +191,9 @@ static void ParseLine(std::u32string& formattedLine, std::vector<std::u32string>
 }
 
 //Unicode UTF-8 <-> UTF-32 support
-static void Convert_utf8_utf32(std::string& input, std::u32string& output) {
+static void Convert_utf8_utf32(std::string & input, std::u32string & output) {
 	const uint32_t UTF32Mask = 0x001fffff;
-	int i = 0;
+	size_t i = 0;
 	output.clear();
 	while (1) {
 		uint8_t iterator = (uint8_t) input[i];
@@ -255,7 +255,7 @@ static void Convert_utf8_utf32(std::string& input, std::u32string& output) {
 	}
 }
 
-static void Convert_utf32_utf8(std::u32string& input, std::string& output) {
+static void Convert_utf32_utf8(std::u32string & input, std::string & output) {
 	const uint8_t UTF8Midstream = 0x80;
 	const uint8_t UTF8MidstreamMask = 0x3f;
 	int i = 0;
@@ -353,13 +353,13 @@ struct Vector2D {
 		return (*this + other);
 	}
 
-	Vector2D& operator-(const Vector2D& other) {
+	Vector2D& operator-(const Vector2D & other) {
 		x -= other.x;
 		y -= other.y;
 		return *this;
 	}
 
-	Vector2D& operator-=(const Vector2D& other) {
+	Vector2D& operator-=(const Vector2D & other) {
 		return (*this - other);
 	}
 
@@ -370,7 +370,7 @@ struct Vector2D {
 	}
 
 	Vector2D& operator*=(const float& other) {
-		return (*this) * other;
+		return (*this)* other;
 	}
 };
 
@@ -457,7 +457,7 @@ typedef union {
 
 struct KeyCodeTrieNode {
 	std::vector<KeyCodeTrieNode*> children;
-	SDL_Keycode value;
+	SDL_Keycode value = SDL_Keycode(0);
 	char* leafValue = nullptr;
 
 	void Clear();
@@ -486,7 +486,7 @@ struct KeyCodeTrie {
 
 struct VocabularyTrieNode {
 	std::vector<VocabularyTrieNode*> children;
-	char32_t vocabulary; //Single kanji, hiragana, or katakana character.
+	char32_t vocabulary = 0; //Single kanji, hiragana, or katakana character.
 	std::u32string pronunciation; //Multiple hiragana or katakana characters.
 	std::u32string englishDefinition; //Contains English definition.
 
@@ -1049,7 +1049,7 @@ struct Japanese {
 
 		static int GetIndex(const char* value) {
 			int i = 0;
-			while(i < Japanese::SizeUnique && strcmp(Japanese::Hiragana::List[i], value) != 0)
+			while (i < Japanese::SizeUnique && strcmp(Japanese::Hiragana::List[i], value) != 0)
 				i++;
 			return i;
 		}
@@ -1514,7 +1514,7 @@ struct Japanese {
 
 		static int GetIndex(const char* value) {
 			int i = 0;
-			while(i < Japanese::SizeUnique && strcmp(Japanese::Katakana::List[i], value) != 0)
+			while (i < Japanese::SizeUnique && strcmp(Japanese::Katakana::List[i], value) != 0)
 				i++;
 			return i;
 		}

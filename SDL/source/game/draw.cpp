@@ -1,10 +1,13 @@
 #include "draw.h"
 
 Draw::Draw(Game* game, float scale = 1.0f) {
+	//Initialized by parameter arguments.
 	this->game = game;
+	this->drawScale = scale;
+
+	//Initialized using other methods
 	this->gameSurface = nullptr;
 	this->gameTexture = nullptr;
-	this->drawScale = scale;
 
 	//Setting up the game surface
 	SDL_Surface* surface = this->game->GetSurface();

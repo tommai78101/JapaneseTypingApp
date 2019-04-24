@@ -9,7 +9,7 @@ class Block;
 class Game {
 private:
 	//Hidden game related data
-	SDL_GLContext glContext;
+	SDL_GLContext glContext = nullptr;
 	std::thread renderingThread;
 	std::mutex glyphStorageMutex;
 	std::mutex tokenStorageMutex;
@@ -27,42 +27,41 @@ protected:
 	//Game properties
 	size_t width;
 	size_t height;
-	size_t scale;
+	size_t scale = 8;
 	size_t clearColor;
-	bool quitFlag;
+	bool quitFlag = false;
 	std::wstring inputString;
-	char* glyphStorages;
 
 	//Game Surface properties
-	uint32_t* pixels;
-	uint32_t pitch;
+	uint32_t* pixels = nullptr;
+	uint32_t pitch = 0;
 
 	//SDL stuffs
-	SDL_Window* gameWindow;
-	SDL_Renderer* gameWindowRenderer;
-	SDL_Texture* mainTexture;
-	SDL_Surface* gameSurface;
-	SDL_Thread* threadId;
+	SDL_Window* gameWindow = nullptr;
+	SDL_Renderer* gameWindowRenderer = nullptr;
+	SDL_Texture* mainTexture = nullptr;
+	SDL_Surface* gameSurface = nullptr;
+	SDL_Thread* threadId = nullptr;
 
 	//SDL_ttf stuffs
 	int fontWidth = 0;
 	int fontHeight = 0;
 	int lineSkip = 0;
-	TTF_Font* defaultFont;
-	SDL_Texture* fontSurfaceSolid;
-	SDL_Texture* fontSurfaceShaded;
-	SDL_Texture* fontSurfaceBlended;
+	TTF_Font* defaultFont = nullptr;
+	SDL_Texture* fontSurfaceSolid = nullptr;
+	SDL_Texture* fontSurfaceShaded = nullptr;
+	SDL_Texture* fontSurfaceBlended = nullptr;
 
 	//Subcomponents
 	//Draw* drawSystem;
-	Input* inputSystem;
+	Input* inputSystem = nullptr;
 
 	//Others
-	Block* block;
+	Block* block = nullptr;
 	VocabularyTrie kanjiTrie;
 	
 	//unistd.h specific variables
-	FILE* dictionaryFile;
+	FILE* dictionaryFile = nullptr;
 public:
 	static const int gravity = -1;
 

@@ -940,7 +940,10 @@ void InitializeGlyphMap(KeyCodeTrie& hiraganaTrie, KeyCodeTrie& katakanaTrie) {
 
 //End Helper functions
 
-Input::Input(Game* game) {
+Input::Input(Game* game) : 
+	glyphSurface(nullptr), glyphTexture(nullptr), glyphsDestination({}), tokenSurface(nullptr), tokenTexture(nullptr),
+	tokensDestination({})
+{
 	//Initializes the token reader.
 	this->tokens.reserve(Input::MaxTokenSize);
 

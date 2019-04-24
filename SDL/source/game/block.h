@@ -7,10 +7,10 @@
 
 class Block {
 protected:
-	int positionX;
-	int positionY;
-	int characterWidth;
-	int characterHeight;
+	int positionX = 0;
+	int positionY = 0;
+	int characterWidth = 0;
+	int characterHeight = 0;
 	SDL_Renderer* gameRenderer;
 public:
 	static const int BlockSize = 50;	//Width and height. It's a square.
@@ -19,13 +19,13 @@ public:
 	//Block(SDL_Renderer* gameRenderer, TTF_Font* font, Uint16* str);
 	Block(SDL_Renderer* gameRenderer, TTF_Font* font, char* str);
 	~Block();
-	void* pixels;
-	SDL_Color color;
-	SDL_Surface* blockSurface;
-	SDL_Surface* glyph;
-	SDL_Texture* blockTexture;
-	SDL_Texture* glyphTexture;
-	TTF_Font* font;
+	void* pixels = nullptr;
+	SDL_Color color = {};
+	SDL_Surface* blockSurface = nullptr;
+	SDL_Surface* glyph = nullptr;
+	SDL_Texture* blockTexture = nullptr;
+	SDL_Texture* glyphTexture = nullptr;
+	TTF_Font* font = nullptr;
 
 	void SetPixel(int x, int y, uint32_t color);
 	uint32_t GetPixel(int x, int y);
