@@ -29,7 +29,8 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2E4E2434-A901-4BE3-BF4A-405EAC6BD138}</ProjectGuid>
     <RootNamespace>SDL</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Japanese Typing</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -48,7 +49,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
@@ -96,8 +97,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2-2.0.8\include;C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2-2.0.8\lib\x64;C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)packages\SDL2-2.0.8\include;$(SolutionDir)packages\SDL2_ttf-2.0.14\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)packages\SDL2-2.0.8\lib\x64;$(SolutionDir)packages\SDL2_ttf-2.0.14\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <IncludePath>C:\devkitPro\devkitA64\aarch64-none-elf\include;C:\devkitPro\libnx\include;C:\devkitPro\portlibs\switch\include;$(IncludePath)</IncludePath>
@@ -162,7 +163,7 @@
       </EntryPointSymbol>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <OutputFile>$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PreBuildEvent>
