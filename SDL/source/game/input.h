@@ -29,10 +29,10 @@ protected:
 	SDL_Rect inputboxPosition;
 	SDL_Rect tokensDestination;
 	SDL_Rect glyphsDestination;
-	SDL_Surface* tokenSurface;
-	SDL_Texture* tokenTexture;
-	SDL_Surface* glyphSurface;
-	SDL_Texture* glyphTexture;
+	SDL_Surface* tokenSurface = nullptr;
+	SDL_Texture* tokenTexture = nullptr;
+	SDL_Surface* glyphSurface = nullptr;
+	SDL_Texture* glyphTexture = nullptr;
 
 public:
 	static const int MaxTokenSize = 4;
