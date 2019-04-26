@@ -125,8 +125,8 @@
     <OutDir>$(SolutionDir)SDL\build</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2-2.0.8\include;C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2-2.0.8\lib\x64;C:\Users\Thompson\Documents\VSProjects\SDL\packages\SDL2_ttf-2.0.14\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)packages\SDL2-2.0.8\include;$(SolutionDir)packages\SDL2_ttf-2.0.14\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)packages\SDL2-2.0.8\lib\x64;$(SolutionDir)packages\SDL2_ttf-2.0.14\lib\x64;$(LibraryPath)</LibraryPath>
     <ExecutablePath>C:\devkitPro\msys2\usr\bin;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

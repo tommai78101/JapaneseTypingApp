@@ -20,6 +20,7 @@ public:
 	Block(SDL_Renderer* gameRenderer, TTF_Font* font, char* str);
 	~Block();
 	void* pixels = nullptr;
+	bool affectedByGravity = true;
 	SDL_Color color = {};
 	SDL_Surface* blockSurface = nullptr;
 	SDL_Surface* glyph = nullptr;
@@ -30,6 +31,7 @@ public:
 	void SetPixel(int x, int y, uint32_t color);
 	uint32_t GetPixel(int x, int y);
 	void Update(int newX, int newY);
+	void FixedUpdate();
 	void Render();
 	void ReplaceGlyph(char* str);
 };

@@ -13,7 +13,7 @@ private:
 	std::thread renderingThread;
 	std::mutex glyphStorageMutex;
 	std::mutex tokenStorageMutex;
-	void ThreadTask();
+	void ThreadTask(Game* game);
 
 protected:
 	//Game input properties
@@ -23,6 +23,9 @@ protected:
 	Vector2D position;
 	Vector2D velocity;
 	UpOrientation currentUpOrientation;
+	std::vector<std::shared_ptr<Block>> hiraganaBlocks;
+	std::vector<std::shared_ptr<Block>> katakanaBlocks;
+	std::vector<std::shared_ptr<Block>> allBlocks;
 
 	//Game properties
 	size_t width;
@@ -62,6 +65,7 @@ protected:
 	
 	//unistd.h specific variables
 	FILE* dictionaryFile = nullptr;
+
 public:
 	static const int gravity = -1;
 
@@ -89,6 +93,9 @@ public:
 	size_t GetHeight() const;
 	SDL_Renderer* GetGameRenderer() const;
 	TTF_Font* GetFont() const;
+	std::vector<std::shared_ptr<Block>> GetHiraganaBlocks() const;
+	std::vector<std::shared_ptr<Block>> GetKatakanaBlocks() const;
+	std::vector<std::shared_ptr<Block>> GetAllBlocks() const;
 
 	SDL_Texture* GetTexture() const;
 	void SetTexture(SDL_Texture* texture);
@@ -100,7 +107,7 @@ public:
 	uint32_t GetPixel(size_t x, size_t y);
 
 	Input* GetInput();
-	Block* GetBlock();
+	//Block* GetBlock();
 };
 
 

@@ -26,6 +26,9 @@ Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, char* str) {
 	this->blockSurface = SDLHelper_CreateSurface(this->BlockSize, this->BlockSize, 32);
 	this->pixels = this->blockSurface->pixels;
 	this->blockTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->blockSurface);
+
+	//By default, this block should be affected by gravity.
+	this->affectedByGravity = true;
 }
 
 Block::~Block() {
@@ -61,6 +64,15 @@ uint32_t Block::GetPixel(int x, int y) {
 void Block::Update(int newX, int newY) {
 	this->positionX = newX;
 	this->positionY = newY;
+}
+
+void Block::FixedUpdate() {
+	if (this->affectedByGravity) {
+		this->positionY--;
+	}
+	else {
+		//We don't do anything about the block for now.
+	}
 }
 
 void Block::Render() {

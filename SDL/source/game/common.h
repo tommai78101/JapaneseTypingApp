@@ -33,6 +33,8 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <memory>
+#include <set>
 
 //SDL libraries
 #ifdef __SWITCH__

@@ -13,7 +13,13 @@
 class Game;
 
 class Input {
+private:
+	//Thread related functions
+	void InputTask(char* value);
+
 protected:
+	std::set<std::string> hiragana;
+	std::set<std::string> katakana;
 	std::vector<SDL_Keycode> tokens;
 	std::string tokenString;
 	KeyCodeTrie hiraganaTrie;
@@ -40,7 +46,7 @@ public:
 	Input(Game* game);
 	~Input();
 
-	void HandleValidInputs(SDL_Keycode inputCode);
+	bool HandleValidInputs(SDL_Keycode inputCode);
 	void ConfirmToken();
 	void ClearTokens();
 	void Update();
@@ -53,6 +59,7 @@ public:
 	//Setters/Getters
 	void SwapInputType();
 	bool CheckInputType() const;
+	std::set<std::string> GetCharacterGlyphs(bool isHiragana);
 
 	std::vector<SDL_Keycode>* GetTokens();
 };

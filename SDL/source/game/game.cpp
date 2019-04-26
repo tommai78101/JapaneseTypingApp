@@ -138,7 +138,7 @@ void Game::InitializeThread() {
 	this->renderingThread = std::thread(&Game::ThreadTask, this);
 }
 
-void Game::ThreadTask() {
+void Game::ThreadTask(Game* game) {
 	SDL_GL_MakeCurrent(this->gameWindow, this->glContext);
 
 	//We create a SDL renderer that we can bind to the game window, on the rendering thread.
@@ -301,7 +301,25 @@ void Game::Initialize() {
 	//Non-SDL objects initialization.
 	//this->drawSystem = new Draw(this, 1.0f);
 	//this->block = new Block(this->gameWindowRenderer, this->defaultFont, Convert(L"あ"));
-	this->block = new Block(this->gameWindowRenderer, this->defaultFont, const_cast<char*>(Japanese::Hiragana::a));
+	//this->block = new Block(this->gameWindowRenderer, this->defaultFont, const_cast<char*>(Japanese::Hiragana::a));
+
+	//Hiragana first
+	std::set<std::string> characterGlyph = this->inputSystem->GetCharacterGlyphs(true);
+	for (std::set<std::string>::iterator it = characterGlyph.begin(); it != characterGlyph.end(); it++) {
+		std::string glyph = *it;
+		std::shared_ptr<Block> ptr(new Block(this->GetGameRenderer(), this->GetFont(), const_cast<char*>(glyph.c_str())));
+		this->hiraganaBlocks.push_back(ptr);
+		this->allBlocks.push_back(ptr);
+	}
+
+	//Katakana second
+	characterGlyph = this->inputSystem->GetCharacterGlyphs(false);
+	for (std::set<std::string>::iterator it = characterGlyph.begin(); it != characterGlyph.end(); it++) {
+		std::string glyph = *it;
+		std::shared_ptr<Block> ptr(new Block(this->GetGameRenderer(), this->GetFont(), const_cast<char*>(glyph.c_str())));
+		this->katakanaBlocks.push_back(ptr);
+		this->allBlocks.push_back(ptr);
+	}
 }
 
 bool Game::IsWindowInitialized() const {
@@ -376,7 +394,7 @@ void Game::Render() {
 
 	//Using Draw class object to render
 	//this->drawSystem->Render();
-	this->block->Render();
+	//this->block->Render();
 
 	this->inputSystem->Render();
 
@@ -424,8 +442,9 @@ void Game::GameEventLoop() {
 					if (!gameEvent.key.repeat) {
 						if ((gameEvent.key.keysym.sym >= SDLK_a && gameEvent.key.keysym.sym <= SDLK_z) || (gameEvent.key.keysym.sym == SDLK_MINUS)) {
 							std::cout << "Hit " << gameEvent.key.keysym.sym << std::endl;
-							this->inputSystem->HandleValidInputs(gameEvent.key.keysym.sym);
-							this->inputSystem->ConfirmToken();
+							if (this->inputSystem->HandleValidInputs(gameEvent.key.keysym.sym)) {
+								this->inputSystem->ConfirmToken();
+							}
 						}
 						else {
 							switch (gameEvent.key.keysym.sym) {
@@ -573,12 +592,28 @@ Input* Game::GetInput() {
 	return this->inputSystem;
 }
 
-Block* Game::GetBlock() {
-	return this->block;
+//Block* Game::GetBlock() {
+//	return this->block;
+//}
+
+std::vector<std::shared_ptr<Block>> Game::GetHiraganaBlocks() const {
+	return this->hiraganaBlocks;
+}
+
+std::vector<std::shared_ptr<Block>> Game::GetKatakanaBlocks() const {
+	return this->katakanaBlocks;
+}
+
+std::vector<std::shared_ptr<Block>> Game::GetAllBlocks() const {
+	return this->allBlocks;
 }
 
 void Game::StoreGlyphs(char* value) {
-	this->glyphStorageMutex.lock();
-	this->GetInput()->UpdateGlyphs(value);
-	this->glyphStorageMutex.unlock();
+	try {
+		std::lock_guard<std::mutex> lockGuard(this->glyphStorageMutex);
+		this->GetInput()->UpdateGlyphs(value);
+	}
+	catch (std::exception e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+	}
 }
