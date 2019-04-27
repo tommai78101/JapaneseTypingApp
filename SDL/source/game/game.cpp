@@ -9,6 +9,8 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	this->velocity = {};
 	this->currentUpOrientation = UpOrientation::NORTH;
 	this->clearColor = 0x0;
+	this->currentTime = 0ULL;
+	this->lastTime = 0ULL;
 	//this->glyphStorageMutex = std::mutex();
 	//this->tokenStorageMutex = std::mutex();
 
@@ -320,6 +322,11 @@ void Game::Initialize() {
 		this->katakanaBlocks.push_back(ptr);
 		this->allBlocks.push_back(ptr);
 	}
+
+	//Creating object pool of Blocks
+	for (int i = 0; i < 256; i++) {
+		this->blocksPool.push_back(std::shared_ptr<Block>(new Block(this->GetGameRenderer(), this->GetFont(), const_cast<char*>("\n"))));
+	}
 }
 
 bool Game::IsWindowInitialized() const {
@@ -343,10 +350,10 @@ void Game::GameLoop() {
 		uint64_t counterElapsed = static_cast<uint64_t>((currentPerformanceCounter - lastPerformanceCounter) * 1000.0);
 		//double millisecondsPerFrame = (1000.0 * (double) counterElapsed) / (double) performanceCounterFrequency;
 		//double framesPerSecond = (double) performanceCounterFrequency / (double) counterElapsed;
-		double counterElapsedBySecond = static_cast<double>(counterElapsed / performanceCounterFrequency);
-		while (counterElapsedBySecond > 0.0) {
+		Game::deltaTime = static_cast<float>((float) (counterElapsed / performanceCounterFrequency));
+		while (Game::deltaTime > 0.0) {
 			this->Update();
-			counterElapsedBySecond -= 1.0;
+			Game::deltaTime -= 1.0;
 		}
 
 		//Once the update tick is finished, we then draw 1 frame to the screen.
@@ -371,11 +378,18 @@ void Game::Update() {
 	//this->drawSystem->Update();
 
 	//(TEMP): Updates the Cartesian position using Isometric coordinates.
-	this->position += CreateIsometricPosition(this->velocity, this->currentUpOrientation) * 0.1f;
-	this->velocity = {};
+	//this->position += CreateIsometricPosition(this->velocity, this->currentUpOrientation) * 0.1f;
+	//this->velocity = {};
 
 	//Reworking the new block.
 	//this->block->Update(static_cast<int>(this->position.x), static_cast<int>(this->position.y));
+
+	//Update all the blocks.
+	size_t size = this->allBlocks.size();
+	for (size_t i = 0; i < size; i++) {
+		std::shared_ptr<Block> block = this->allBlocks.at(i);
+		block->Update();
+	}
 }
 
 void Game::Render() {

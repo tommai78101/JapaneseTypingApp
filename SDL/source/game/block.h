@@ -5,13 +5,38 @@
 
 #include "common.h"
 
-class Block {
+class Object {
+private:
+	bool isActive = false;
+
 protected:
-	int positionX = 0;
-	int positionY = 0;
+	Vector2D oldVelocity = { 0.0f };
+	Vector2D currentVelocity = { 0.0f };
+	Vector2D oldPosition = { 0.0f };
+	Vector2D currentPosition = { 0.0f };
+
+public:
+	//Public functions
+	void Calculate(Vector2D desiredVelocity);
+	void ApplyGravity();
+
+	//Getters
+	Vector2D GetVelocity() const;
+	Vector2D GetPosition() const;
+	bool IsActive() const;
+
+	//Setters
+	void SetVelocity(Vector2D velocity);
+	void SetPosition(Vector2D position);
+	void SetActive(bool value);
+};
+
+class Block : public Object {
+protected:
 	int characterWidth = 0;
 	int characterHeight = 0;
 	SDL_Renderer* gameRenderer;
+
 public:
 	static const int BlockSize = 50;	//Width and height. It's a square.
 
@@ -30,7 +55,7 @@ public:
 
 	void SetPixel(int x, int y, uint32_t color);
 	uint32_t GetPixel(int x, int y);
-	void Update(int newX, int newY);
+	void Update();
 	void FixedUpdate();
 	void Render();
 	void ReplaceGlyph(char* str);

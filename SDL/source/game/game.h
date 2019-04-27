@@ -14,6 +14,8 @@ private:
 	std::mutex glyphStorageMutex;
 	std::mutex tokenStorageMutex;
 	void ThreadTask();
+	uint64_t currentTime = 0ULL;
+	uint64_t lastTime = 0ULL;
 
 protected:
 	//Game input properties
@@ -26,6 +28,7 @@ protected:
 	std::vector<std::shared_ptr<Block>> hiraganaBlocks;
 	std::vector<std::shared_ptr<Block>> katakanaBlocks;
 	std::vector<std::shared_ptr<Block>> allBlocks;
+	std::vector<std::shared_ptr<Block>> blocksPool;
 
 	//Game properties
 	size_t width;
@@ -67,7 +70,8 @@ protected:
 	FILE* dictionaryFile = nullptr;
 
 public:
-	static const int gravity = -1;
+	static inline const float gravity = 9.86f;
+	static inline float deltaTime;
 
 	Game(int newWidth, int newHeight, std::string title);
 	~Game();
