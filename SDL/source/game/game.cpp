@@ -157,7 +157,7 @@ void Game::ThreadTask() {
 void Game::Initialize() {
 	// Initializing the fonts.
 #ifdef __SWITCH__
-	this->defaultFont = TTF_OpenFontRW(SDL_RWFromMem((void *) JapanSans_ttf, JapanSans_ttf_size), 1, 36);
+	this->defaultFont = TTF_OpenFontRW(SDL_RWFromMem((void*) JapanSans_ttf, JapanSans_ttf_size), 1, 36);
 #else
 	this->defaultFont = TTF_OpenFont(FONTPATH, 36);
 #endif
@@ -325,13 +325,14 @@ void Game::Initialize() {
 
 	//Creating object pool of Blocks
 	for (int i = 0; i < 256; i++) {
-		this->blocksPool.push_back(std::shared_ptr<Block>(new Block(this->GetGameRenderer(), this->GetFont(), const_cast<char*>("\n"))));
+		std::shared_ptr<Block> ptr(new Block(this->GetGameRenderer(), this->GetFont(), const_cast<char*>("\n")));
+		if (i < (this->width / Block::BlockSize)) {
+			ptr->SetPosition((float)(i * Block::BlockSize), 0.0f);
+			ptr->ReplaceGlyph(Japanese::Hiragana::List[i]);
+			ptr->SetActive(true);
+		}
+		this->blocksPool.push_back(ptr);
 	}
-
-	std::shared_ptr<Block> ptr = this->blocksPool.at(0);
-	ptr->ReplaceGlyph(Japanese::Hiragana::e);
-	ptr->SetActive(true);
-	ptr->SetPosition(4.0f, 19.0f);
 }
 
 bool Game::IsWindowInitialized() const {
@@ -343,7 +344,7 @@ void Game::GameLoop() {
 	//uint64_t performanceCounterFrequency = SDL_GetPerformanceFrequency();
 	uint64_t lastPerformanceCounter = 0ULL;
 	uint64_t currentPerformanceCounter = SDL_GetPerformanceCounter() - 1000;
-	const float minimumTargetTime = 60.0f / 1000.0f;
+	const float minimumTargetTime = 6.0f / 1000.0f;
 
 	//We set the default render draw color to black. Mainly used as a way to clear the screen.
 	SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 0, 255);
@@ -362,20 +363,15 @@ void Game::GameLoop() {
 		if (Game::deltaTime > minimumTargetTime)
 			Game::deltaTime = minimumTargetTime;
 
-		this->accumulatedDeltaTime += Game::deltaTime;
-
 		//uint64_t counterElapsed = static_cast<uint64_t>((currentPerformanceCounter - lastPerformanceCounter) * 1000.0);
 		//double millisecondsPerFrame = (1000.0 * (double) counterElapsed) / (double) performanceCounterFrequency;
 		//double framesPerSecond = (double) performanceCounterFrequency / (double) counterElapsed;
 		//Game::deltaTime = static_cast<float>((float) ((float) counterElapsed / (float) performanceCounterFrequency));
+
+		//Game is not going to be updated with realistic timing and physics.
 		this->Update();
 
 		//Once the update tick is finished, we then draw 1 frame to the screen.
-		if (this->accumulatedDeltaTime > 1.0f) {
-			this->FixedUpdate();
-			this->accumulatedDeltaTime = 0.0f;
-		}
-
 		this->Render();
 
 		//We give back the CPU its own time, and delay our game up to that posize_t. This is to prevent the CPU
@@ -476,66 +472,66 @@ void Game::GameEventLoop() {
 	while (!this->quitFlag) {
 		while (SDL_PollEvent(&gameEvent)) {
 			switch (gameEvent.type) {
-				case SDL_WINDOWEVENT: {
-					switch (gameEvent.window.event) {
-						case SDL_WINDOWEVENT_CLOSE: {
-							this->QuitGame();
+			case SDL_WINDOWEVENT: {
+				switch (gameEvent.window.event) {
+				case SDL_WINDOWEVENT_CLOSE: {
+					this->QuitGame();
+					break;
+				}
+				}
+				break;
+			}
+			case SDL_KEYDOWN: {
+				if (!gameEvent.key.repeat) {
+					if ((gameEvent.key.keysym.sym >= SDLK_a && gameEvent.key.keysym.sym <= SDLK_z) || (gameEvent.key.keysym.sym == SDLK_MINUS)) {
+						std::cout << "Hit " << gameEvent.key.keysym.sym << std::endl;
+						if (this->inputSystem->HandleValidInputs(gameEvent.key.keysym.sym)) {
+							this->inputSystem->ConfirmToken();
+						}
+					}
+					else {
+						switch (gameEvent.key.keysym.sym) {
+						case SDLK_BACKSPACE: {
+							//Handle backspace
+							std::vector<SDL_Keycode>* tokens = this->inputSystem->GetTokens();
+							if (!tokens->empty()) {
+								tokens->pop_back();
+							}
+							break;
+						}
+						case SDLK_RETURN:
+							//Enter key to confirm the inputs.
+							this->inputSystem->ConfirmToken();
+							break;
+						default:
+							this->inputs[gameEvent.key.keysym.scancode] = true;
 							break;
 						}
 					}
-					break;
 				}
-				case SDL_KEYDOWN: {
-					if (!gameEvent.key.repeat) {
-						if ((gameEvent.key.keysym.sym >= SDLK_a && gameEvent.key.keysym.sym <= SDLK_z) || (gameEvent.key.keysym.sym == SDLK_MINUS)) {
-							std::cout << "Hit " << gameEvent.key.keysym.sym << std::endl;
-							if (this->inputSystem->HandleValidInputs(gameEvent.key.keysym.sym)) {
-								this->inputSystem->ConfirmToken();
-							}
-						}
-						else {
-							switch (gameEvent.key.keysym.sym) {
-								case SDLK_BACKSPACE: {
-									//Handle backspace
-									std::vector<SDL_Keycode>* tokens = this->inputSystem->GetTokens();
-									if (!tokens->empty()) {
-										tokens->pop_back();
-									}
-									break;
-								}
-								case SDLK_RETURN:
-									//Enter key to confirm the inputs.
-									this->inputSystem->ConfirmToken();
-									break;
-								default:
-									this->inputs[gameEvent.key.keysym.scancode] = true;
-									break;
-							}
-						}
-					}
-					break;
+				break;
+			}
+			case SDL_KEYUP: {
+				bool alt = this->inputs[SDL_SCANCODE_RALT] || this->inputs[SDL_SCANCODE_LALT];
+				bool ctrl = this->inputs[SDL_SCANCODE_RCTRL] || this->inputs[SDL_SCANCODE_LCTRL];
+				if (alt && ctrl) {
+					this->inputSystem->SwapInputType();
 				}
-				case SDL_KEYUP: {
-					bool alt = this->inputs[SDL_SCANCODE_RALT] || this->inputs[SDL_SCANCODE_LALT];
-					bool ctrl = this->inputs[SDL_SCANCODE_RCTRL] || this->inputs[SDL_SCANCODE_LCTRL];
-					if (alt && ctrl) {
-						this->inputSystem->SwapInputType();
-					}
-					this->inputs[gameEvent.key.keysym.scancode] = false;
-					break;
-				}
+				this->inputs[gameEvent.key.keysym.scancode] = false;
+				break;
+			}
 #ifdef __SWITCH__
-				case SDL_JOYAXISMOTION: {
-					Print("%sJoystick %d axis %d value: %d\n", DEBUG, gameEvent.jaxis.which, gameEvent.jaxis.axis, gameEvent.jaxis.value);
-					break;
-				}
-				case SDL_JOYBUTTONDOWN: {
-					// https://github.com/devkitPro/SDL/blob/switch-sdl2/src/joystick/switch/SDL_sysjoystick.c#L51
-					Print("%sJoystick %d button %d down\n", DEBUG, gameEvent.jbutton.which, gameEvent.jbutton.button);
-					if (gameEvent.jbutton.which == 0 && (gameEvent.jbutton.button == JoyconButtons::KEY_A || gameEvent.jbutton.button == JoyconButtons::KEY_PLUS))
-						this->QuitGame();
-					break;
-				}
+			case SDL_JOYAXISMOTION: {
+				Print("%sJoystick %d axis %d value: %d\n", DEBUG, gameEvent.jaxis.which, gameEvent.jaxis.axis, gameEvent.jaxis.value);
+				break;
+			}
+			case SDL_JOYBUTTONDOWN: {
+				// https://github.com/devkitPro/SDL/blob/switch-sdl2/src/joystick/switch/SDL_sysjoystick.c#L51
+				Print("%sJoystick %d button %d down\n", DEBUG, gameEvent.jbutton.which, gameEvent.jbutton.button);
+				if (gameEvent.jbutton.which == 0 && (gameEvent.jbutton.button == JoyconButtons::KEY_A || gameEvent.jbutton.button == JoyconButtons::KEY_PLUS))
+					this->QuitGame();
+				break;
+			}
 #endif
 			}
 		}
@@ -568,7 +564,7 @@ SDL_Texture* Game::GetTexture() const {
 	return this->mainTexture;
 }
 
-void Game::SetTexture(SDL_Texture* texture) {
+void Game::SetTexture(SDL_Texture * texture) {
 	this->mainTexture = texture;
 }
 
@@ -576,7 +572,7 @@ SDL_Surface* Game::GetSurface() const {
 	return this->gameSurface;
 }
 
-void Game::SetSurface(SDL_Surface* surface) {
+void Game::SetSurface(SDL_Surface * surface) {
 	this->gameSurface = surface;
 }
 

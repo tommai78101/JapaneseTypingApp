@@ -16,7 +16,6 @@ private:
 	void ThreadTask();
 	uint64_t currentTime = 0ULL;
 	uint64_t lastTime = 0ULL;
-	float accumulatedDeltaTime = 0.0f;
 
 protected:
 	//Game input properties

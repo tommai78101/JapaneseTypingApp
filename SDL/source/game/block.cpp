@@ -43,7 +43,7 @@ void Object::SetActive(bool value) {
 }
 
 void Object::ApplyGravity() {
-	Vector2D gravity{ 0.0f, 1.0f };
+	Vector2D gravity{ 0.0f, 5.0f };
 	this->Calculate(gravity * Game::gravity);
 }
 
