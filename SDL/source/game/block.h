@@ -28,6 +28,7 @@ public:
 	//Setters
 	void SetVelocity(Vector2D velocity);
 	void SetPosition(Vector2D position);
+	void SetPosition(float x, float y);
 	void SetActive(bool value);
 };
 
@@ -59,6 +60,7 @@ public:
 	void FixedUpdate();
 	void Render();
 	void ReplaceGlyph(char* str);
+	void ReplaceGlyph(const char* str);
 };
 
 

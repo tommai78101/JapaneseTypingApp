@@ -16,6 +16,7 @@ private:
 	void ThreadTask();
 	uint64_t currentTime = 0ULL;
 	uint64_t lastTime = 0ULL;
+	float accumulatedDeltaTime = 0.0f;
 
 protected:
 	//Game input properties
@@ -86,6 +87,7 @@ public:
 	void Clear();
 
 	virtual void Update();
+	virtual void FixedUpdate();
 	virtual void Render();
 	void DrawPixel(uint32_t x, uint32_t y, uint32_t width, uint32_t color);
 

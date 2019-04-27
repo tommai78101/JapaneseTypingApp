@@ -32,12 +32,18 @@ void Object::SetPosition(Vector2D position) {
 	this->currentPosition = position;
 }
 
+void Object::SetPosition(float x, float y) {
+	Vector2D pos{ x, y };
+	this->oldPosition = pos;
+	this->currentPosition = pos;
+}
+
 void Object::SetActive(bool value) {
 	this->isActive = value;
 }
 
 void Object::ApplyGravity() {
-	Vector2D gravity{ 0.0f, -1.0f };
+	Vector2D gravity{ 0.0f, 1.0f };
 	this->Calculate(gravity * Game::gravity);
 }
 
@@ -165,5 +171,9 @@ void Block::ReplaceGlyph(char* str) {
 	TTF_SizeUTF8(this->font, str, &this->characterWidth, &this->characterHeight);
 	this->glyph = TTF_RenderUTF8_Solid(this->font, str, this->color);
 	this->glyphTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->glyph);
+}
+
+void Block::ReplaceGlyph(const char* str) {
+	this->ReplaceGlyph(const_cast<char*>(str));
 }
 

@@ -327,6 +327,11 @@ void Game::Initialize() {
 	for (int i = 0; i < 256; i++) {
 		this->blocksPool.push_back(std::shared_ptr<Block>(new Block(this->GetGameRenderer(), this->GetFont(), const_cast<char*>("\n"))));
 	}
+
+	std::shared_ptr<Block> ptr = this->blocksPool.at(0);
+	ptr->ReplaceGlyph(Japanese::Hiragana::e);
+	ptr->SetActive(true);
+	ptr->SetPosition(4.0f, 19.0f);
 }
 
 bool Game::IsWindowInitialized() const {
@@ -335,32 +340,43 @@ bool Game::IsWindowInitialized() const {
 
 void Game::GameLoop() {
 	//Prepare the necessary timing calculations
-	uint64_t performanceCounterFrequency = SDL_GetPerformanceFrequency();
-	uint64_t lastPerformanceCounter = SDL_GetPerformanceCounter();
-	uint64_t currentPerformanceCounter = SDL_GetPerformanceCounter();
+	//uint64_t performanceCounterFrequency = SDL_GetPerformanceFrequency();
+	uint64_t lastPerformanceCounter = 0ULL;
+	uint64_t currentPerformanceCounter = SDL_GetPerformanceCounter() - 1000;
+	const float minimumTargetTime = 60.0f / 1000.0f;
 
 	//We set the default render draw color to black. Mainly used as a way to clear the screen.
 	SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 0, 255);
 
 	//Main game loop. Loops while checking if the quitFlag is not set
 	while (!this->quitFlag) {
+		//We update the last known time counter derived from the above timing calculations for the update tick.
+		lastPerformanceCounter = currentPerformanceCounter;
+
 		//Calculating each tick's elapsed time, and use this to update the game according to the 
 		//remaining ticks available that should be used to update the game with.
 		currentPerformanceCounter = SDL_GetPerformanceCounter();
-		uint64_t counterElapsed = static_cast<uint64_t>((currentPerformanceCounter - lastPerformanceCounter) * 1000.0);
+
+		//Obtain the delta time
+		Game::deltaTime = static_cast<float>((currentPerformanceCounter - lastPerformanceCounter) * 1000.0 / (double) SDL_GetPerformanceFrequency());
+		if (Game::deltaTime > minimumTargetTime)
+			Game::deltaTime = minimumTargetTime;
+
+		this->accumulatedDeltaTime += Game::deltaTime;
+
+		//uint64_t counterElapsed = static_cast<uint64_t>((currentPerformanceCounter - lastPerformanceCounter) * 1000.0);
 		//double millisecondsPerFrame = (1000.0 * (double) counterElapsed) / (double) performanceCounterFrequency;
 		//double framesPerSecond = (double) performanceCounterFrequency / (double) counterElapsed;
-		Game::deltaTime = static_cast<float>((float) (counterElapsed / performanceCounterFrequency));
-		while (Game::deltaTime > 0.0) {
-			this->Update();
-			Game::deltaTime -= 1.0;
-		}
+		//Game::deltaTime = static_cast<float>((float) ((float) counterElapsed / (float) performanceCounterFrequency));
+		this->Update();
 
 		//Once the update tick is finished, we then draw 1 frame to the screen.
-		this->Render();
+		if (this->accumulatedDeltaTime > 1.0f) {
+			this->FixedUpdate();
+			this->accumulatedDeltaTime = 0.0f;
+		}
 
-		//We update the last known time counter derived from the above timing calculations for the update tick.
-		lastPerformanceCounter = currentPerformanceCounter;
+		this->Render();
 
 		//We give back the CPU its own time, and delay our game up to that posize_t. This is to prevent the CPU
 		//from being hogged up by our game, avoiding the main thread (kernel thread) to be overtaken for rendering our game.
@@ -384,11 +400,20 @@ void Game::Update() {
 	//Reworking the new block.
 	//this->block->Update(static_cast<int>(this->position.x), static_cast<int>(this->position.y));
 
-	//Update all the blocks.
-	size_t size = this->allBlocks.size();
+	//Update all the blocks in the blocks pool.
+	size_t size = this->blocksPool.size();
 	for (size_t i = 0; i < size; i++) {
-		std::shared_ptr<Block> block = this->allBlocks.at(i);
+		std::shared_ptr<Block> block = this->blocksPool.at(i);
 		block->Update();
+	}
+}
+
+void Game::FixedUpdate() {
+	//Mostly pertaining to physics.
+	size_t size = this->blocksPool.size();
+	for (size_t i = 0; i < size; i++) {
+		std::shared_ptr<Block> block = this->blocksPool.at(i);
+		block->FixedUpdate();
 	}
 }
 
@@ -408,8 +433,16 @@ void Game::Render() {
 
 	//Using Draw class object to render
 	//this->drawSystem->Render();
-	//this->block->Render();
 
+	//Block rendering
+	//this->block->Render();
+	size_t size = this->blocksPool.size();
+	for (size_t i = 0; i < size; i++) {
+		std::shared_ptr<Block> block = this->blocksPool.at(i);
+		block->Render();
+	}
+
+	//Input system rendering
 	this->inputSystem->Render();
 
 	////For testing, we draw the fonts
