@@ -13,7 +13,7 @@ private:
 	std::thread renderingThread;
 	std::mutex glyphStorageMutex;
 	std::mutex tokenStorageMutex;
-	void ThreadTask(Game* game);
+	void ThreadTask();
 
 protected:
 	//Game input properties

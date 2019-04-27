@@ -138,7 +138,7 @@ void Game::InitializeThread() {
 	this->renderingThread = std::thread(&Game::ThreadTask, this);
 }
 
-void Game::ThreadTask(Game* game) {
+void Game::ThreadTask() {
 	SDL_GL_MakeCurrent(this->gameWindow, this->glContext);
 
 	//We create a SDL renderer that we can bind to the game window, on the rendering thread.
