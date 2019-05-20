@@ -21,12 +21,16 @@ int main(int c, char* v[]) {
 	game.InitializeThread();
 
 	//Start the game loop.
-	/*while (appletMainLoop()) {
+#ifdef __SWITCH__
+	while (appletMainLoop()) {
 		if (game.GameLoopTick())
 			break;
-	}*/
+	}
+#endif
+
+	//Main game loop.
 	game.GameEventLoop();
-	//game.GameLoop();
+	game.GameLoop();
 
 #ifndef __SWITCH__
 	}
