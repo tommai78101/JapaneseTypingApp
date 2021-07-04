@@ -1055,6 +1055,10 @@ struct Japanese {
 				i++;
 			return i;
 		}
+
+		static inline const int GetListSize() {
+			return sizeof(List) / sizeof(List[0]);
+		}
 	};
 
 	struct Katakana {
@@ -1519,6 +1523,10 @@ struct Japanese {
 			while (i < Japanese::SizeUnique && strcmp(Japanese::Katakana::List[i], value) != 0)
 				i++;
 			return i;
+		}
+
+		static inline const int GetListSize() {
+			return sizeof(List) / sizeof(List[0]);
 		}
 	};
 

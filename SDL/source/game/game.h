@@ -92,6 +92,7 @@ public:
 
 	//Game related functions
 	void StoreGlyphs(char* value);
+	void ProcessGlyphs(char* value);
 
 	//Getter/Setters
 	size_t GetWidth() const;

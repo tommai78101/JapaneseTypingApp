@@ -4,10 +4,12 @@
 #	define __BLOCK_H__
 
 #include "common.h"
+#include "game.h"
 
 class Object {
 private:
 	bool isActive = false;
+	bool isHidden = false;
 
 protected:
 	Vector2D oldVelocity = { 0.0f };
@@ -24,26 +26,30 @@ public:
 	Vector2D GetVelocity() const;
 	Vector2D GetPosition() const;
 	bool IsActive() const;
+	bool IsHidden() const;
 
 	//Setters
 	void SetVelocity(Vector2D velocity);
 	void SetPosition(Vector2D position);
 	void SetPosition(float x, float y);
 	void SetActive(bool value);
+	void SetHidden(bool value);
 };
 
 class Block : public Object {
 protected:
 	int characterWidth = 0;
 	int characterHeight = 0;
-	SDL_Renderer* gameRenderer;
+	SDL_Renderer* gameRenderer = nullptr;
+	char* glyphsValue = nullptr;
+	Game* game = nullptr;
 
 public:
 	static const int BlockSize = 50;	//Width and height. It's a square.
 
 	//Block(SDL_Renderer* gameRenderer, TTF_Font* font, wchar_t* character);
 	//Block(SDL_Renderer* gameRenderer, TTF_Font* font, Uint16* str);
-	Block(SDL_Renderer* gameRenderer, TTF_Font* font, char* str);
+	Block(Game* game, TTF_Font* font, char* str);
 	~Block();
 	void* pixels = nullptr;
 	bool affectedByGravity = true;
@@ -61,6 +67,7 @@ public:
 	void Render();
 	void ReplaceGlyph(char* str);
 	void ReplaceGlyph(const char* str);
+	char* GetGlyphValue() const;
 };
 
 

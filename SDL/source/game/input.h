@@ -60,6 +60,7 @@ public:
 	void SwapInputType();
 	bool CheckInputType() const;
 	std::set<std::string> GetCharacterGlyphs(bool isHiragana);
+	SDL_Rect GetPosition() const;
 
 	std::vector<SDL_Keycode>* GetTokens();
 };

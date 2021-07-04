@@ -309,7 +309,7 @@ void Game::Initialize() {
 	std::set<std::string> characterGlyph = this->inputSystem->GetCharacterGlyphs(true);
 	for (std::set<std::string>::iterator it = characterGlyph.begin(); it != characterGlyph.end(); it++) {
 		std::string glyph = *it;
-		std::shared_ptr<Block> ptr(new Block(this->GetGameRenderer(), this->GetFont(), const_cast<char*>(glyph.c_str())));
+		std::shared_ptr<Block> ptr(new Block(this, this->GetFont(), const_cast<char*>(glyph.c_str())));
 		this->hiraganaBlocks.push_back(ptr);
 		this->allBlocks.push_back(ptr);
 	}
@@ -318,17 +318,20 @@ void Game::Initialize() {
 	characterGlyph = this->inputSystem->GetCharacterGlyphs(false);
 	for (std::set<std::string>::iterator it = characterGlyph.begin(); it != characterGlyph.end(); it++) {
 		std::string glyph = *it;
-		std::shared_ptr<Block> ptr(new Block(this->GetGameRenderer(), this->GetFont(), const_cast<char*>(glyph.c_str())));
+		std::shared_ptr<Block> ptr(new Block(this, this->GetFont(), const_cast<char*>(glyph.c_str())));
 		this->katakanaBlocks.push_back(ptr);
 		this->allBlocks.push_back(ptr);
 	}
 
 	//Creating object pool of Blocks
-	for (int i = 0; i < 256; i++) {
-		std::shared_ptr<Block> ptr(new Block(this->GetGameRenderer(), this->GetFont(), const_cast<char*>("\n")));
+	int listSize = Japanese::Hiragana::GetListSize();
+	int testPoolSize = 10;
+	for (int i = 0; i < testPoolSize; i++) {
+		int randomCharacterIndex = std::rand() % listSize;
+		std::shared_ptr<Block> ptr(new Block(this, this->GetFont(), const_cast<char*>("\n")));
 		if (i < (this->width / Block::BlockSize)) {
 			ptr->SetPosition((float)(i * Block::BlockSize), 0.0f);
-			ptr->ReplaceGlyph(Japanese::Hiragana::List[i]);
+			ptr->ReplaceGlyph(Japanese::Hiragana::List[randomCharacterIndex]);
 			ptr->SetActive(true);
 		}
 		this->blocksPool.push_back(ptr);
@@ -342,9 +345,9 @@ bool Game::IsWindowInitialized() const {
 void Game::GameLoop() {
 	//Prepare the necessary timing calculations
 	//uint64_t performanceCounterFrequency = SDL_GetPerformanceFrequency();
-	uint64_t lastPerformanceCounter = 0ULL;
-	uint64_t currentPerformanceCounter = SDL_GetPerformanceCounter() - 1000;
-	const float minimumTargetTime = 6.0f / 1000.0f;
+	uint64_t lastPerformanceCounter = SDL_GetPerformanceCounter();
+	uint64_t currentPerformanceCounter = SDL_GetPerformanceCounter();
+	const float minimumTargetTime = 1.5f;
 
 	//We set the default render draw color to black. Mainly used as a way to clear the screen.
 	SDL_SetRenderDrawColor(this->gameWindowRenderer, 0, 0, 0, 255);
@@ -368,8 +371,14 @@ void Game::GameLoop() {
 		//double framesPerSecond = (double) performanceCounterFrequency / (double) counterElapsed;
 		//Game::deltaTime = static_cast<float>((float) ((float) counterElapsed / (float) performanceCounterFrequency));
 
-		//Game is not going to be updated with realistic timing and physics.
-		this->Update();
+		//Updating game with a non-constant update tick.
+		while (Game::deltaTime >= 1.0f) {
+			Game::deltaTime /= 2.0f;
+			this->Update();
+		}
+
+		//Updating game with fixed update ticks
+		this->FixedUpdate();
 
 		//Once the update tick is finished, we then draw 1 frame to the screen.
 		this->Render();
@@ -435,7 +444,9 @@ void Game::Render() {
 	size_t size = this->blocksPool.size();
 	for (size_t i = 0; i < size; i++) {
 		std::shared_ptr<Block> block = this->blocksPool.at(i);
-		block->Render();
+		if (!block->IsHidden()) {
+			block->Render();
+		}
 	}
 
 	//Input system rendering
@@ -655,8 +666,23 @@ void Game::StoreGlyphs(char* value) {
 	try {
 		std::lock_guard<std::mutex> lockGuard(this->glyphStorageMutex);
 		this->GetInput()->UpdateGlyphs(value);
+		this->ProcessGlyphs(value);
 	}
 	catch (std::exception e) {
 		std::cerr << "Error: " << e.what() << std::endl;
+	}
+}
+
+void Game::ProcessGlyphs(char* value) {
+	//Mostly pertaining to physics.
+	size_t size = this->blocksPool.size();
+	for (size_t i = 0; i < size; i++) {
+		std::shared_ptr<Block> block = this->blocksPool.at(i);
+		std::string blockGlyphs(block->GetGlyphValue());
+		std::string valueGlyphs(value);
+		if (blockGlyphs == value) {
+			block->SetHidden(true);
+			block->SetActive(false);
+		}
 	}
 }

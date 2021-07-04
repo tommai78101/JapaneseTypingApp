@@ -1121,6 +1121,10 @@ std::set<std::string> Input::GetCharacterGlyphs(bool isHiragana) {
 	return isHiragana ? this->hiragana : this->katakana;
 }
 
+SDL_Rect Input::GetPosition() const {
+	return this->inputboxPosition;
+}
+
 //End Public functions
 
 //Start Private Functions

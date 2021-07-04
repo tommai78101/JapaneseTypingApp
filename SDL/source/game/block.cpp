@@ -22,6 +22,10 @@ bool Object::IsActive() const {
 	return this->isActive;
 }
 
+bool Object::IsHidden() const {
+	return this->isHidden;
+}
+
 void Object::SetVelocity(Vector2D velocity) {
 	this->oldVelocity = velocity;
 	this->currentVelocity = velocity;
@@ -42,8 +46,12 @@ void Object::SetActive(bool value) {
 	this->isActive = value;
 }
 
+void Object::SetHidden(bool value) {
+	this->isHidden = value;
+}
+
 void Object::ApplyGravity() {
-	Vector2D gravity{ 0.0f, 5.0f };
+	Vector2D gravity{ 0.0f, 0.01f };
 	this->Calculate(gravity * Game::gravity);
 }
 
@@ -65,9 +73,10 @@ void Object::ApplyGravity() {
 //	this->glyphTexture = SDL_CreateTextureFromSurface(gameRenderer, this->glyph);
 //}
 
-Block::Block(SDL_Renderer* gameRenderer, TTF_Font* font, char* str) {
+Block::Block(Game* game, TTF_Font* font, char* str) {
 	//Initialized by parameter arguments.
-	this->gameRenderer = gameRenderer;
+	this->game = game;
+	this->gameRenderer = game->GetGameRenderer();
 	this->font = font;
 	this->ReplaceGlyph(str);
 
@@ -114,6 +123,15 @@ void Block::Update() {
 	//If it's inactive, don't update.
 	if (!this->IsActive())
 		return;
+
+	//Calculate whether the block has reached the bottom of the screen, but above the input system.
+	SDL_Rect rect = this->game->GetInput()->GetPosition();
+	Vector2D position = this->currentPosition;
+	if (position.y >= rect.y - this->BlockSize) {
+		position.y = rect.y - this->BlockSize;
+		this->SetPosition(position);
+		this->affectedByGravity = false;
+	}
 }
 
 void Block::FixedUpdate() {
@@ -171,9 +189,15 @@ void Block::ReplaceGlyph(char* str) {
 	TTF_SizeUTF8(this->font, str, &this->characterWidth, &this->characterHeight);
 	this->glyph = TTF_RenderUTF8_Solid(this->font, str, this->color);
 	this->glyphTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->glyph);
+
+	//Store the glyph value
+	this->glyphsValue = str;
 }
 
 void Block::ReplaceGlyph(const char* str) {
 	this->ReplaceGlyph(const_cast<char*>(str));
 }
 
+char* Block::GetGlyphValue() const {
+	return this->glyphsValue;
+}
