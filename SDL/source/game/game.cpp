@@ -7,7 +7,7 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	//Initializing game-specific variables.
 	this->position = {};
 	this->velocity = {};
-	this->currentUpOrientation = UpOrientation::NORTH;
+	this->currentUpOrientation = static_cast<UpOrientation>(UpOrientation::NORTH);
 	this->clearColor = 0x0;
 	this->currentTime = 0ULL;
 	this->lastTime = 0ULL;
@@ -124,6 +124,8 @@ Game::~Game() {
 	//	this->drawSystem = nullptr;
 	//}
 
+	this->QuitGame();
+
 #ifdef __SWITCH__
 	romfsExit();
 #endif
@@ -137,7 +139,15 @@ void Game::InitializeThread() {
 	this->quitFlag = false;
 	this->glContext = SDL_GL_GetCurrentContext();
 	SDL_GL_MakeCurrent(this->gameWindow, nullptr);
+}
+
+void Game::StartThread() {
 	this->renderingThread = std::thread(&Game::ThreadTask, this);
+}
+
+void Game::StopThread() {
+	std::cout << "Waiting on rendering thread to end and join the main thread." << std::endl;
+	this->renderingThread.join();
 }
 
 void Game::ThreadTask() {
@@ -195,7 +205,7 @@ void Game::Initialize() {
 	this->pitch = this->gameSurface->pitch;
 
 	//The SDL surface's "pixels" variable is a void pointer to an array of pixels. We need to first convert the type
-	//of the posize_ter to something that we can manage easily.
+	//of the pointer to something that we can manage easily.
 	this->pixels = static_cast<uint32_t*>(this->gameSurface->pixels);
 
 	//Using the SDL renderer, we use the SDL surface to create a SDL texture. Output error and force-quit the game,
@@ -330,7 +340,7 @@ void Game::Initialize() {
 		int randomCharacterIndex = std::rand() % listSize;
 		std::shared_ptr<Block> ptr(new Block(this, this->GetFont(), const_cast<char*>("\n")));
 		if (i < (this->width / Block::BlockSize)) {
-			ptr->SetPosition((float)(i * Block::BlockSize), 0.0f);
+			ptr->SetPosition((float) (i * Block::BlockSize), 0.0f);
 			ptr->ReplaceGlyph(Japanese::Hiragana::List[randomCharacterIndex]);
 			ptr->SetActive(true);
 		}
@@ -482,67 +492,73 @@ void Game::GameEventLoop() {
 	bool isKeyDown = false;
 	while (!this->quitFlag) {
 		while (SDL_PollEvent(&gameEvent)) {
-			switch (gameEvent.type) {
-			case SDL_WINDOWEVENT: {
-				switch (gameEvent.window.event) {
-				case SDL_WINDOWEVENT_CLOSE: {
-					this->QuitGame();
+			SDL_EventType gameEventType = static_cast<SDL_EventType>(gameEvent.type);
+			switch (gameEventType) {
+				case SDL_WINDOWEVENT: {
+					SDL_WindowEventID eventId = static_cast<SDL_WindowEventID>(gameEvent.window.event);
+					switch (eventId) {
+						case SDL_WINDOWEVENT_CLOSE: {
+							this->QuitGame();
+							break;
+						}
+						default: {
+							// Need to write down a log message system, to indicate to the player something has happened.
+							break;
+						}
+					}
 					break;
 				}
-				}
-				break;
-			}
-			case SDL_KEYDOWN: {
-				if (!gameEvent.key.repeat) {
-					if ((gameEvent.key.keysym.sym >= SDLK_a && gameEvent.key.keysym.sym <= SDLK_z) || (gameEvent.key.keysym.sym == SDLK_MINUS)) {
-						std::cout << "Hit " << gameEvent.key.keysym.sym << std::endl;
-						if (this->inputSystem->HandleValidInputs(gameEvent.key.keysym.sym)) {
-							this->inputSystem->ConfirmToken();
-						}
-					}
-					else {
-						switch (gameEvent.key.keysym.sym) {
-						case SDLK_BACKSPACE: {
-							//Handle backspace
-							std::vector<SDL_Keycode>* tokens = this->inputSystem->GetTokens();
-							if (!tokens->empty()) {
-								tokens->pop_back();
+				case SDL_KEYDOWN: {
+					if (!gameEvent.key.repeat) {
+						if ((gameEvent.key.keysym.sym >= SDLK_a && gameEvent.key.keysym.sym <= SDLK_z) || (gameEvent.key.keysym.sym == SDLK_MINUS)) {
+							std::cout << "Hit " << gameEvent.key.keysym.sym << std::endl;
+							if (this->inputSystem->HandleValidInputs(gameEvent.key.keysym.sym)) {
+								this->inputSystem->ConfirmToken();
 							}
-							break;
 						}
-						case SDLK_RETURN:
-							//Enter key to confirm the inputs.
-							this->inputSystem->ConfirmToken();
-							break;
-						default:
-							this->inputs[gameEvent.key.keysym.scancode] = true;
-							break;
+						else {
+							switch (gameEvent.key.keysym.sym) {
+								case SDLK_BACKSPACE: {
+									//Handle backspace
+									std::vector<SDL_Keycode>* tokens = this->inputSystem->GetTokens();
+									if (!tokens->empty()) {
+										tokens->pop_back();
+									}
+									break;
+								}
+								case SDLK_RETURN:
+									//Enter key to confirm the inputs.
+									this->inputSystem->ConfirmToken();
+									break;
+								default:
+									this->inputs[gameEvent.key.keysym.scancode] = true;
+									break;
+							}
 						}
 					}
+					break;
 				}
-				break;
-			}
-			case SDL_KEYUP: {
-				bool alt = this->inputs[SDL_SCANCODE_RALT] || this->inputs[SDL_SCANCODE_LALT];
-				bool ctrl = this->inputs[SDL_SCANCODE_RCTRL] || this->inputs[SDL_SCANCODE_LCTRL];
-				if (alt && ctrl) {
-					this->inputSystem->SwapInputType();
+				case SDL_KEYUP: {
+					bool alt = this->inputs[SDL_SCANCODE_RALT] || this->inputs[SDL_SCANCODE_LALT];
+					bool ctrl = this->inputs[SDL_SCANCODE_RCTRL] || this->inputs[SDL_SCANCODE_LCTRL];
+					if (alt && ctrl) {
+						this->inputSystem->SwapInputType();
+					}
+					this->inputs[gameEvent.key.keysym.scancode] = false;
+					break;
 				}
-				this->inputs[gameEvent.key.keysym.scancode] = false;
-				break;
-			}
 #ifdef __SWITCH__
-			case SDL_JOYAXISMOTION: {
-				Print("%sJoystick %d axis %d value: %d\n", DEBUG, gameEvent.jaxis.which, gameEvent.jaxis.axis, gameEvent.jaxis.value);
-				break;
-			}
-			case SDL_JOYBUTTONDOWN: {
-				// https://github.com/devkitPro/SDL/blob/switch-sdl2/src/joystick/switch/SDL_sysjoystick.c#L51
-				Print("%sJoystick %d button %d down\n", DEBUG, gameEvent.jbutton.which, gameEvent.jbutton.button);
-				if (gameEvent.jbutton.which == 0 && (gameEvent.jbutton.button == JoyconButtons::KEY_A || gameEvent.jbutton.button == JoyconButtons::KEY_PLUS))
-					this->QuitGame();
-				break;
-			}
+				case SDL_JOYAXISMOTION: {
+					Print("%sJoystick %d axis %d value: %d\n", DEBUG, gameEvent.jaxis.which, gameEvent.jaxis.axis, gameEvent.jaxis.value);
+					break;
+				}
+				case SDL_JOYBUTTONDOWN: {
+					// https://github.com/devkitPro/SDL/blob/switch-sdl2/src/joystick/switch/SDL_sysjoystick.c#L51
+					Print("%sJoystick %d button %d down\n", DEBUG, gameEvent.jbutton.which, gameEvent.jbutton.button);
+					if (gameEvent.jbutton.which == 0 && (gameEvent.jbutton.button == JoyconButtons::KEY_A || gameEvent.jbutton.button == JoyconButtons::KEY_PLUS))
+						this->QuitGame();
+					break;
+				}
 #endif
 			}
 		}
@@ -551,7 +567,6 @@ void Game::GameEventLoop() {
 
 void Game::QuitGame() {
 	this->quitFlag = true;
-	this->renderingThread.join();
 }
 
 void Game::Clear() {
@@ -575,7 +590,7 @@ SDL_Texture* Game::GetTexture() const {
 	return this->mainTexture;
 }
 
-void Game::SetTexture(SDL_Texture * texture) {
+void Game::SetTexture(SDL_Texture* texture) {
 	this->mainTexture = texture;
 }
 
@@ -583,7 +598,7 @@ SDL_Surface* Game::GetSurface() const {
 	return this->gameSurface;
 }
 
-void Game::SetSurface(SDL_Surface * surface) {
+void Game::SetSurface(SDL_Surface* surface) {
 	this->gameSurface = surface;
 }
 
@@ -680,7 +695,7 @@ void Game::ProcessGlyphs(char* value) {
 		std::shared_ptr<Block> block = this->blocksPool.at(i);
 		std::string blockGlyphs(block->GetGlyphValue());
 		std::string valueGlyphs(value);
-		if (blockGlyphs == value) {
+		if (blockGlyphs == valueGlyphs) {
 			block->SetHidden(true);
 			block->SetActive(false);
 		}

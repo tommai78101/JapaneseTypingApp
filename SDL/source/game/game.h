@@ -78,6 +78,8 @@ public:
 
 	void Initialize();
 	void InitializeThread();
+	void StartThread();
+	void StopThread();
 	bool IsWindowInitialized() const;
 	void GameLoop();
 	void GameEventLoop();

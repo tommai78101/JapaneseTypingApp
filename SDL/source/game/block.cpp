@@ -121,14 +121,16 @@ uint32_t Block::GetPixel(int x, int y) {
 
 void Block::Update() {
 	//If it's inactive, don't update.
-	if (!this->IsActive())
+	if (!this->IsActive()) {
+		std::cout << "Block " << this->GetGlyphValue() << " is currently inactive." << std::endl;
 		return;
+	}
 
 	//Calculate whether the block has reached the bottom of the screen, but above the input system.
 	SDL_Rect rect = this->game->GetInput()->GetPosition();
 	Vector2D position = this->currentPosition;
 	if (position.y >= rect.y - this->BlockSize) {
-		position.y = rect.y - this->BlockSize;
+		position.y = (float) (rect.y - this->BlockSize);
 		this->SetPosition(position);
 		this->affectedByGravity = false;
 	}

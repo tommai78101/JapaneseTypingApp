@@ -29,8 +29,9 @@ int main(int c, char* v[]) {
 #endif
 
 	//Main game loop.
+	game.StartThread();
 	game.GameEventLoop();
-	game.GameLoop();
+	game.StopThread();
 
 #ifndef __SWITCH__
 	}

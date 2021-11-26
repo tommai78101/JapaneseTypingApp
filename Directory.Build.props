@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ImportGroup Label="PropertySheets" />
+	<PropertyGroup Label="UserMacros" />
+	<ItemDefinitionGroup>
+		<ClCompile>
+			<!-- <DisableSpecificWarnings>4675;4541;4702;4267;4996;26812;%(DisableSpecificWarnings)</DisableSpecificWarnings> -->
+			<DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+		</ClCompile>
+	</ItemDefinitionGroup>
+	<ItemGroup />
+</Project>

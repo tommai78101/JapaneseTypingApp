@@ -1108,12 +1108,12 @@ void Input::UpdateGlyphs(char* value) {
 
 	if (this->glyphSurface) {
 		SDL_FreeSurface(this->glyphSurface);
+		this->glyphSurface = TTF_RenderUTF8_Solid(this->game->GetFont(), value, SDL_COLOR_Black);
 	}
 	if (this->glyphTexture) {
 		SDL_DestroyTexture(this->glyphTexture);
+		this->glyphTexture = SDL_CreateTextureFromSurface(this->game->GetGameRenderer(), this->glyphSurface);
 	}
-	this->glyphSurface = TTF_RenderUTF8_Solid(this->game->GetFont(), value, SDL_COLOR_Black);
-	this->glyphTexture = SDL_CreateTextureFromSurface(this->game->GetGameRenderer(), this->glyphSurface);
 	this->glyphsDestination = { this->inputboxPosition.x + paddingWidth, this->inputboxPosition.y + paddingHeight, charWidth, charHeight };
 }
 

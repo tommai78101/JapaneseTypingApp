@@ -19,17 +19,17 @@ std::string SubstringInsideUTF8(std::string& value, char* firstContainer, char* 
 Vector2D CreateIsometricPosition(Vector2D velocity, UpOrientation orientation) {
 	Vector2D result = {};
 	switch (orientation) {
-		case NORTHEAST: {
+		case UpOrientation::NORTHEAST: {
 			result.x = (velocity.x - velocity.y);
 			result.y = (velocity.x + velocity.y) / 2.0f;
 			break;
 		}
 		default:
-		case NORTH: {
+		case UpOrientation::NORTH: {
 			result = velocity;
 			break;
 		}
-		case NORTHWEST: {
+		case UpOrientation::NORTHWEST: {
 			result.x = (velocity.x + velocity.y);
 			result.y = (-velocity.x + velocity.y) / 2.0f;
 			break;

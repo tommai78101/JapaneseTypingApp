@@ -37,6 +37,7 @@
 #include <set>
 
 //SDL libraries
+#pragma warning(push, 0)
 #ifdef __SWITCH__
 #	include <SDL2/SDL.h>
 #	include <SDL2/SDL_ttf.h>
@@ -47,6 +48,7 @@
 #	include <SDL_ttf.h>
 #	include <SDL_thread.h>
 #endif
+#pragma warning(pop)
 
 //For anything using size_t, use size_t.
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -61,7 +63,7 @@ const size_t BLUE_MASK = 0x00ff0000;
 const size_t ALPHA_MASK = 0xff000000;
 #endif
 
-enum UpOrientation {
+enum class UpOrientation {
 	NORTH,
 	NORTHEAST,
 	NORTHWEST
