@@ -79,9 +79,14 @@ Block::Block(Game* game, TTF_Font* font, char* str) {
 	this->gameRenderer = game->GetGameRenderer();
 	this->font = font;
 	this->ReplaceGlyph(str);
+	this->blockLength = strlen(str) / 3;
+
+	// Custom width calculations.
+	int paddingWidth = std::abs(this->BlockSize - this->characterWidth) / 2;
+	this->totalWidth = Block::BlockSize * this->blockLength + (this->blockLength > 1 ? -paddingWidth : 0);
 
 	//Block class properties initialized using other methods.
-	this->blockSurface = SDLHelper_CreateSurface(this->BlockSize, this->BlockSize, 32);
+	this->blockSurface = SDLHelper_CreateSurface(this->BlockSize * this->blockLength, this->BlockSize, 32);
 	this->pixels = this->blockSurface->pixels;
 	this->blockTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->blockSurface);
 
@@ -122,7 +127,6 @@ uint32_t Block::GetPixel(int x, int y) {
 void Block::Update() {
 	//If it's inactive, don't update.
 	if (!this->IsActive()) {
-		std::cout << "Block " << this->GetGlyphValue() << " is currently inactive." << std::endl;
 		return;
 	}
 
@@ -159,6 +163,7 @@ void Block::Render() {
 	int paddingHeight = std::abs(this->BlockSize - this->characterHeight) / 2;
 
 	//First, we draw the font glyphs.
+	SDL_SetRenderDrawColor(this->gameRenderer, 0, 0, 0, 255);
 	SDL_Rect fontDestination = { ((int) this->currentPosition.x) + paddingWidth, ((int) this->currentPosition.y) + paddingHeight, this->characterWidth, this->characterHeight };
 	SDL_RenderCopy(this->gameRenderer, this->glyphTexture, nullptr, &fontDestination);
 
@@ -167,17 +172,17 @@ void Block::Render() {
 
 	//Struct object initialization
 	SDL_Rect r = {
-		(int) this->currentPosition.x,			//absolute left
-		(int) this->currentPosition.y,			//absolute top
-		Block::BlockSize,								//width
-		Block::BlockSize								//height
+		(int) this->currentPosition.x, //absolute left
+		(int) this->currentPosition.y, //absolute top
+		this->totalWidth, //width
+		Block::BlockSize //height
 	};
 	SDL_RenderDrawRect(this->gameRenderer, &r);
 
 	//Always reset the color after use.
-	SDL_SetRenderDrawColor(this->gameRenderer, 255, 255, 255, 255);
+	SDL_SetRenderDrawColor(this->gameRenderer, 0, 0, 0, 255);
 
-	SDL_Rect destination = {(int) this->currentPosition.x, (int) this->currentPosition.y, this->BlockSize, this->BlockSize};
+	SDL_Rect destination = {r};
 	SDL_RenderCopy(this->gameRenderer, this->blockTexture, nullptr, &destination);
 }
 
@@ -202,4 +207,16 @@ void Block::ReplaceGlyph(const char* str) {
 
 char* Block::GetGlyphValue() const {
 	return this->glyphsValue;
+}
+
+int Block::GetBlockLength() const {
+	return this->blockLength;
+}
+
+int Block::GetCharacterWidth() const {
+	return this->characterWidth;
+}
+
+int Block::GetBlockRenderWidth() const {
+	return this->totalWidth;
 }

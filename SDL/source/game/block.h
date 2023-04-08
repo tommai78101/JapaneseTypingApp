@@ -43,6 +43,8 @@ protected:
 	SDL_Renderer* gameRenderer = nullptr;
 	char* glyphsValue = nullptr;
 	Game* game = nullptr;
+	int blockLength = 0;
+	int totalWidth = 0;
 
 public:
 	static const int BlockSize = 50;	//Width and height. It's a square.
@@ -68,6 +70,9 @@ public:
 	void ReplaceGlyph(char* str);
 	void ReplaceGlyph(const char* str);
 	char* GetGlyphValue() const;
+	int GetBlockLength() const;
+	int GetCharacterWidth() const;
+	int GetBlockRenderWidth() const;
 };
 
 

@@ -336,15 +336,17 @@ void Game::Initialize() {
 	//Creating object pool of Blocks
 	int listSize = Japanese::Hiragana::GetListSize();
 	int testPoolSize = 10;
-	for (int i = 0; i < testPoolSize; i++) {
-		int randomCharacterIndex = std::rand() % listSize;
-		std::shared_ptr<Block> ptr(new Block(this, this->GetFont(), const_cast<char*>("\n")));
-		if (i < (this->width / Block::BlockSize)) {
-			ptr->SetPosition((float) (i * Block::BlockSize), 0.0f);
-			ptr->ReplaceGlyph(Japanese::Hiragana::List[randomCharacterIndex]);
+	int currentBlockWidth = 0;
+	for (int currentBlock = 0; currentBlock < testPoolSize; currentBlock++) {
+		int randomCharacterIndex = (std::rand() * std::rand()) % listSize;
+		if (currentBlockWidth < this->width) {
+			char* str = const_cast<char*>(Japanese::Hiragana::List[randomCharacterIndex]);
+			std::shared_ptr<Block> ptr(new Block(this, this->GetFont(), str));
+			ptr->SetPosition((float) (currentBlockWidth), 0.0f);
 			ptr->SetActive(true);
+			this->blocksPool.push_back(ptr);
+			currentBlockWidth += ptr->GetBlockRenderWidth();
 		}
-		this->blocksPool.push_back(ptr);
 	}
 }
 
@@ -698,6 +700,7 @@ void Game::ProcessGlyphs(char* value) {
 		if (blockGlyphs == valueGlyphs) {
 			block->SetHidden(true);
 			block->SetActive(false);
+			std::cout << "Block " << block->GetGlyphValue() << " is currently inactive." << std::endl;
 		}
 	}
 }
