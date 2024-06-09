@@ -104,6 +104,7 @@ public:
 	std::vector<std::shared_ptr<Block>> GetHiraganaBlocks() const;
 	std::vector<std::shared_ptr<Block>> GetKatakanaBlocks() const;
 	std::vector<std::shared_ptr<Block>> GetAllBlocks() const;
+	std::vector<std::shared_ptr<Block>> GetBlocksPool() const;
 
 	SDL_Texture* GetTexture() const;
 	void SetTexture(SDL_Texture* texture);

@@ -336,16 +336,21 @@ void Game::Initialize() {
 	//Creating object pool of Blocks
 	int listSize = Japanese::Hiragana::GetListSize();
 	int testPoolSize = 10;
+	int testRowsSize = 10;
 	int currentBlockWidth = 0;
+	const int outsideBoundary = this->width + 10;
+	int rows = (this->GetHeight() - (Block::BlockSize / 2 + Block::BlockSize)) / Block::BlockSize;
 	for (int currentBlock = 0; currentBlock < testPoolSize; currentBlock++) {
 		int randomCharacterIndex = (std::rand() * std::rand()) % listSize;
 		if (currentBlockWidth < this->width) {
 			char* str = const_cast<char*>(Japanese::Hiragana::List[randomCharacterIndex]);
-			std::shared_ptr<Block> ptr(new Block(this, this->GetFont(), str));
-			ptr->SetPosition((float) (currentBlockWidth), 0.0f);
-			ptr->SetActive(true);
-			this->blocksPool.push_back(ptr);
-			currentBlockWidth += ptr->GetBlockRenderWidth();
+			int rowIndex = std::rand() % rows;
+			std::shared_ptr<Block> blockPtr = std::make_shared<Block>(this, this->GetFont(), str);
+			blockPtr->SetPosition(outsideBoundary + (float) (currentBlockWidth), rowIndex * Block::BlockSize);
+			blockPtr->SetActive(true);
+			blockPtr->SetRowNumber(rowIndex);
+			this->blocksPool.push_back(blockPtr);
+			currentBlockWidth += blockPtr->GetBlockRenderWidth();
 		}
 	}
 }
@@ -677,6 +682,10 @@ std::vector<std::shared_ptr<Block>> Game::GetKatakanaBlocks() const {
 
 std::vector<std::shared_ptr<Block>> Game::GetAllBlocks() const {
 	return this->allBlocks;
+}
+
+std::vector<std::shared_ptr<Block>> Game::GetBlocksPool() const {
+	return this->blocksPool;
 }
 
 void Game::StoreGlyphs(char* value) {

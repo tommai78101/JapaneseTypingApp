@@ -45,6 +45,8 @@ protected:
 	Game* game = nullptr;
 	int blockLength = 0;
 	int totalWidth = 0;
+	Block* leftBlock;
+	int rowNumber = -1;
 
 public:
 	static const int BlockSize = 50;	//Width and height. It's a square.
@@ -52,6 +54,7 @@ public:
 	//Block(SDL_Renderer* gameRenderer, TTF_Font* font, wchar_t* character);
 	//Block(SDL_Renderer* gameRenderer, TTF_Font* font, Uint16* str);
 	Block(Game* game, TTF_Font* font, char* str);
+	Block(Block* block);
 	~Block();
 	void* pixels = nullptr;
 	bool affectedByGravity = true;
@@ -73,6 +76,9 @@ public:
 	int GetBlockLength() const;
 	int GetCharacterWidth() const;
 	int GetBlockRenderWidth() const;
+	std::shared_ptr<Block> GetLeftBlock();
+	void SetRowNumber(int row);
+	int GetRowNumber();
 };
 
 

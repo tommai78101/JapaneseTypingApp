@@ -51,7 +51,7 @@ void Object::SetHidden(bool value) {
 }
 
 void Object::ApplyGravity() {
-	Vector2D gravity{ 0.0f, 0.01f };
+	Vector2D gravity{ -0.1f, 0.0f };
 	this->Calculate(gravity * Game::gravity);
 }
 
@@ -89,6 +89,27 @@ Block::Block(Game* game, TTF_Font* font, char* str) {
 	this->blockSurface = SDLHelper_CreateSurface(this->BlockSize * this->blockLength, this->BlockSize, 32);
 	this->pixels = this->blockSurface->pixels;
 	this->blockTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->blockSurface);
+
+	//By default, this block should be affected by gravity.
+	this->affectedByGravity = true;
+}
+
+Block::Block(Block* block) {
+	//Initialized by parameter arguments.
+	this->game = block->game;
+	this->gameRenderer = block->game->GetGameRenderer();
+	this->font = block->font;
+	this->ReplaceGlyph(block->GetGlyphValue());
+	this->blockLength = strlen(block->GetGlyphValue()) / 3;
+
+	// Custom width calculations.
+	int paddingWidth = std::abs(block->BlockSize - block->characterWidth) / 2;
+	this->totalWidth = Block::BlockSize * block->blockLength + (block->blockLength > 1 ? -paddingWidth : 0);
+
+	//Block class properties initialized using other methods.
+	this->blockSurface = SDLHelper_CreateSurface(block->BlockSize * block->blockLength, block->BlockSize, 32);
+	this->pixels = block->blockSurface->pixels;
+	this->blockTexture = SDL_CreateTextureFromSurface(block->gameRenderer, block->blockSurface);
 
 	//By default, this block should be affected by gravity.
 	this->affectedByGravity = true;
@@ -133,8 +154,24 @@ void Block::Update() {
 	//Calculate whether the block has reached the bottom of the screen, but above the input system.
 	SDL_Rect rect = this->game->GetInput()->GetPosition();
 	Vector2D position = this->currentPosition;
-	if (position.y >= rect.y - this->BlockSize) {
+
+	// This is for when blocks are coming down from the top.
+	/*if (position.y >= rect.y - this->BlockSize) {
 		position.y = (float) (rect.y - this->BlockSize);
+		this->SetPosition(position);
+		this->affectedByGravity = false;
+	}*/
+
+	// This is for when blocks are coming from the right, and has reached the left boundary.
+	// Temporarily setting the left boundary to be 1 block size wide.
+	std::shared_ptr<Block> nearest = this->GetLeftBlock();
+	int boundaryX = Block::BlockSize / 2;
+	if (nearest.get() != nullptr && nearest.get()->IsActive()) {
+		int blockUnits = (nearest.get()->GetBlockRenderWidth() / Block::BlockSize) + 1;
+		boundaryX = blockUnits * Block::BlockSize;
+	}
+	if (position.x <= boundaryX) {
+		position.x = boundaryX;
 		this->SetPosition(position);
 		this->affectedByGravity = false;
 	}
@@ -219,4 +256,35 @@ int Block::GetCharacterWidth() const {
 
 int Block::GetBlockRenderWidth() const {
 	return this->totalWidth;
+}
+
+std::shared_ptr<Block> Block::GetLeftBlock() {
+	std::vector<std::shared_ptr<Block>> blocksPool = this->game->GetBlocksPool();
+	size_t size = blocksPool.size();
+	this->leftBlock = nullptr;
+	Block* nearestLeftBlock = nullptr;
+	for (size_t i = 0; i < size; i++) {
+		std::shared_ptr<Block> block = blocksPool.at(i);
+		if (block->GetRowNumber() == this->GetRowNumber()) {
+			Vector2D blockPos = block->GetPosition();
+			if (blockPos.x < this->GetPosition().x) {
+				nearestLeftBlock = block.get();
+				if (nearestLeftBlock != nullptr && nearestLeftBlock->GetPosition().x >= blockPos.x) {
+					this->leftBlock = nearestLeftBlock;
+				}
+			}
+		}
+	}
+	if (this->leftBlock == nullptr) {
+		return nullptr;
+	}
+	return std::make_shared<Block>(this->leftBlock);
+}
+
+void Block::SetRowNumber(int row) {
+	this->rowNumber = row;
+}
+
+int Block::GetRowNumber() {
+	return this->rowNumber;
 }
