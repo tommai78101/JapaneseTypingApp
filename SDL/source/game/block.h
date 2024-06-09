@@ -58,6 +58,7 @@ public:
 	~Block();
 	void* pixels = nullptr;
 	bool affectedByGravity = true;
+	bool isAtBoundary = false;
 	SDL_Color color = {};
 	SDL_Surface* blockSurface = nullptr;
 	SDL_Surface* glyph = nullptr;
@@ -74,11 +75,13 @@ public:
 	void ReplaceGlyph(const char* str);
 	char* GetGlyphValue() const;
 	int GetBlockLength() const;
+	int GetBlockWidth() const;
 	int GetCharacterWidth() const;
 	int GetBlockRenderWidth() const;
 	std::shared_ptr<Block> GetLeftBlock();
 	void SetRowNumber(int row);
 	int GetRowNumber();
+	bool IsAffectedByGravity() const;
 };
 
 

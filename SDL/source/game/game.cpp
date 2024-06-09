@@ -4,6 +4,9 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	//Setting up random numbers.
 	srand(static_cast<unsigned int>(time(nullptr)));
 
+	// Closing with exit
+	std::atexit(SDL_Quit);
+
 	//Initializing game-specific variables.
 	this->position = {};
 	this->velocity = {};
@@ -335,23 +338,21 @@ void Game::Initialize() {
 
 	//Creating object pool of Blocks
 	int listSize = Japanese::Hiragana::GetListSize();
-	int testPoolSize = 10;
+	int testPoolSize = 30;
 	int testRowsSize = 10;
 	int currentBlockWidth = 0;
-	const int outsideBoundary = this->width + 10;
+	const int outsideBoundary = this->GetWidth() + 10;
 	int rows = (this->GetHeight() - (Block::BlockSize / 2 + Block::BlockSize)) / Block::BlockSize;
 	for (int currentBlock = 0; currentBlock < testPoolSize; currentBlock++) {
 		int randomCharacterIndex = (std::rand() * std::rand()) % listSize;
-		if (currentBlockWidth < this->width) {
-			char* str = const_cast<char*>(Japanese::Hiragana::List[randomCharacterIndex]);
-			int rowIndex = std::rand() % rows;
-			std::shared_ptr<Block> blockPtr = std::make_shared<Block>(this, this->GetFont(), str);
-			blockPtr->SetPosition(outsideBoundary + (float) (currentBlockWidth), rowIndex * Block::BlockSize);
-			blockPtr->SetActive(true);
-			blockPtr->SetRowNumber(rowIndex);
-			this->blocksPool.push_back(blockPtr);
-			currentBlockWidth += blockPtr->GetBlockRenderWidth();
-		}
+		char* str = const_cast<char*>(Japanese::Hiragana::List[randomCharacterIndex]);
+		int rowIndex = std::rand() % rows;
+		std::shared_ptr<Block> blockPtr = std::make_shared<Block>(this, this->GetFont(), str);
+		blockPtr->SetPosition(outsideBoundary + (float) (currentBlockWidth), rowIndex * Block::BlockSize);
+		blockPtr->SetActive(true);
+		blockPtr->SetRowNumber(rowIndex);
+		this->blocksPool.push_back(blockPtr);
+		currentBlockWidth += blockPtr->GetBlockWidth() + 10;
 	}
 }
 

@@ -51,7 +51,7 @@ void Object::SetHidden(bool value) {
 }
 
 void Object::ApplyGravity() {
-	Vector2D gravity{ -0.1f, 0.0f };
+	Vector2D gravity{ -1.0f, 0.0f };
 	this->Calculate(gravity * Game::gravity);
 }
 
@@ -80,6 +80,7 @@ Block::Block(Game* game, TTF_Font* font, char* str) {
 	this->font = font;
 	this->ReplaceGlyph(str);
 	this->blockLength = strlen(str) / 3;
+	this->leftBlock = nullptr;
 
 	// Custom width calculations.
 	int paddingWidth = std::abs(this->BlockSize - this->characterWidth) / 2;
@@ -110,9 +111,15 @@ Block::Block(Block* block) {
 	this->blockSurface = SDLHelper_CreateSurface(block->BlockSize * block->blockLength, block->BlockSize, 32);
 	this->pixels = block->blockSurface->pixels;
 	this->blockTexture = SDL_CreateTextureFromSurface(block->gameRenderer, block->blockSurface);
+	this->isAtBoundary = block->isAtBoundary;
+	this->leftBlock = block->leftBlock;
+	this->SetActive(block->IsActive());
+	this->SetPosition(block->GetPosition());
+	this->SetVelocity(block->GetVelocity());
+	this->SetRowNumber(block->GetRowNumber());
 
 	//By default, this block should be affected by gravity.
-	this->affectedByGravity = true;
+	this->affectedByGravity = block->affectedByGravity;
 }
 
 Block::~Block() {
@@ -146,8 +153,8 @@ uint32_t Block::GetPixel(int x, int y) {
 }
 
 void Block::Update() {
-	//If it's inactive, don't update.
-	if (!this->IsActive()) {
+	//If it's inactive or if it's at the boundary, don't update.
+	if (!this->IsActive() || this->isAtBoundary) {
 		return;
 	}
 
@@ -164,16 +171,17 @@ void Block::Update() {
 
 	// This is for when blocks are coming from the right, and has reached the left boundary.
 	// Temporarily setting the left boundary to be 1 block size wide.
-	std::shared_ptr<Block> nearest = this->GetLeftBlock();
 	int boundaryX = Block::BlockSize / 2;
-	if (nearest.get() != nullptr && nearest.get()->IsActive()) {
-		int blockUnits = (nearest.get()->GetBlockRenderWidth() / Block::BlockSize) + 1;
-		boundaryX = blockUnits * Block::BlockSize;
+	int count = 0;
+	std::shared_ptr<Block> nearest = this->GetLeftBlock();
+	while (nearest.get() != nullptr && nearest.get()->IsActive()) {
+		count += nearest.get()->GetBlockWidth();
+		nearest = nearest.get()->GetLeftBlock();
 	}
-	if (position.x <= boundaryX) {
-		position.x = boundaryX;
+	if (position.x <= boundaryX + count) {
+		position.x = boundaryX + count;
 		this->SetPosition(position);
-		this->affectedByGravity = false;
+		this->isAtBoundary = true;
 	}
 }
 
@@ -182,7 +190,7 @@ void Block::FixedUpdate() {
 	if (!this->IsActive())
 		return;
 
-	if (this->affectedByGravity) {
+	if (this->affectedByGravity && !this->isAtBoundary) {
 		Object::ApplyGravity();
 	}
 	else {
@@ -198,10 +206,11 @@ void Block::Render() {
 	//Get paddings in order to center align the text in the rectangle.
 	int paddingWidth = std::abs(this->BlockSize - this->characterWidth) / 2;
 	int paddingHeight = std::abs(this->BlockSize - this->characterHeight) / 2;
+	int fullBlockSize = this->GetBlockWidth();
 
 	//First, we draw the font glyphs.
 	SDL_SetRenderDrawColor(this->gameRenderer, 0, 0, 0, 255);
-	SDL_Rect fontDestination = { ((int) this->currentPosition.x) + paddingWidth, ((int) this->currentPosition.y) + paddingHeight, this->characterWidth, this->characterHeight };
+	SDL_Rect fontDestination = { ((int) this->currentPosition.x) + paddingWidth, ((int) this->currentPosition.y) + paddingHeight, fullBlockSize - paddingWidth * 2, this->characterHeight };
 	SDL_RenderCopy(this->gameRenderer, this->glyphTexture, nullptr, &fontDestination);
 
 	//Second, we draw a rectangle (square), depending on the width of the character glyph.
@@ -211,7 +220,7 @@ void Block::Render() {
 	SDL_Rect r = {
 		(int) this->currentPosition.x, //absolute left
 		(int) this->currentPosition.y, //absolute top
-		this->totalWidth, //width
+		fullBlockSize, //width
 		Block::BlockSize //height
 	};
 	SDL_RenderDrawRect(this->gameRenderer, &r);
@@ -250,6 +259,10 @@ int Block::GetBlockLength() const {
 	return this->blockLength;
 }
 
+int Block::GetBlockWidth() const {
+	return (strlen(this->GetGlyphValue()) / 3) * Block::BlockSize;
+}
+
 int Block::GetCharacterWidth() const {
 	return this->characterWidth;
 }
@@ -259,18 +272,16 @@ int Block::GetBlockRenderWidth() const {
 }
 
 std::shared_ptr<Block> Block::GetLeftBlock() {
-	std::vector<std::shared_ptr<Block>> blocksPool = this->game->GetBlocksPool();
-	size_t size = blocksPool.size();
-	this->leftBlock = nullptr;
-	Block* nearestLeftBlock = nullptr;
-	for (size_t i = 0; i < size; i++) {
-		std::shared_ptr<Block> block = blocksPool.at(i);
-		if (block->GetRowNumber() == this->GetRowNumber()) {
-			Vector2D blockPos = block->GetPosition();
-			if (blockPos.x < this->GetPosition().x) {
-				nearestLeftBlock = block.get();
-				if (nearestLeftBlock != nullptr && nearestLeftBlock->GetPosition().x >= blockPos.x) {
-					this->leftBlock = nearestLeftBlock;
+	if (this->leftBlock == nullptr) {
+		int distance = this->GetPosition().x - Block::BlockSize;
+		std::vector<std::shared_ptr<Block>> blocksPool = this->game->GetBlocksPool();
+		for (size_t i = 0; i < blocksPool.size(); i++) {
+			std::shared_ptr<Block> block = blocksPool.at(i);
+			if (block->GetRowNumber() == this->GetRowNumber() && this != block.get()) {
+				int newDistance = this->GetPosition().x - block->GetPosition().x;
+				if (newDistance > 0 && newDistance < distance) {
+					distance = newDistance;
+					this->leftBlock = block.get();
 				}
 			}
 		}
@@ -287,4 +298,8 @@ void Block::SetRowNumber(int row) {
 
 int Block::GetRowNumber() {
 	return this->rowNumber;
+}
+
+bool Block::IsAffectedByGravity() const {
+	return this->affectedByGravity;
 }
