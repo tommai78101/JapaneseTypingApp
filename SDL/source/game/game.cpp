@@ -348,7 +348,7 @@ void Game::Initialize() {
 		char* str = const_cast<char*>(Japanese::Hiragana::List[randomCharacterIndex]);
 		int rowIndex = std::rand() % rows;
 		std::shared_ptr<Block> blockPtr = std::make_shared<Block>(this, this->GetFont(), str);
-		blockPtr->SetPosition(outsideBoundary + (float) (currentBlockWidth), rowIndex * Block::BlockSize);
+		blockPtr->SetPosition((float) (outsideBoundary + currentBlockWidth), (float) (rowIndex * Block::BlockSize));
 		blockPtr->SetActive(true);
 		blockPtr->SetRowNumber(rowIndex);
 		this->blocksPool.push_back(blockPtr);
@@ -708,9 +708,17 @@ void Game::ProcessGlyphs(char* value) {
 		std::string blockGlyphs(block->GetGlyphValue());
 		std::string valueGlyphs(value);
 		if (blockGlyphs == valueGlyphs) {
+			std::shared_ptr<Block> rightBlock = block->GetRightBlock();
+			while (rightBlock != nullptr) {
+				if (!rightBlock.get()->IsHit()) {
+					rightBlock.get()->TurnOnGravity();
+				}
+				rightBlock = rightBlock->GetRightBlock();
+			}
 			block->SetHidden(true);
-			block->SetActive(false);
+			block->SetHit(true);
 			std::cout << "Block " << block->GetGlyphValue() << " is currently inactive." << std::endl;
+			break;
 		}
 	}
 }

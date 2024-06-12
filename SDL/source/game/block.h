@@ -10,6 +10,8 @@ class Object {
 private:
 	bool isActive = false;
 	bool isHidden = false;
+	bool isHit = false;
+	bool isMoving = false;
 
 protected:
 	Vector2D oldVelocity = { 0.0f };
@@ -27,6 +29,8 @@ public:
 	Vector2D GetPosition() const;
 	bool IsActive() const;
 	bool IsHidden() const;
+	bool IsHit() const;
+	bool IsMoving() const;
 
 	//Setters
 	void SetVelocity(Vector2D velocity);
@@ -34,6 +38,8 @@ public:
 	void SetPosition(float x, float y);
 	void SetActive(bool value);
 	void SetHidden(bool value);
+	void SetHit(bool value);
+	void SetMovingFlag(bool value);
 };
 
 class Block : public Object {
@@ -45,8 +51,9 @@ protected:
 	Game* game = nullptr;
 	int blockLength = 0;
 	int totalWidth = 0;
-	Block* leftBlock;
 	int rowNumber = -1;
+	volatile bool affectedByGravity = true;
+	volatile bool isAtBoundary = false;
 
 public:
 	static const int BlockSize = 50;	//Width and height. It's a square.
@@ -57,8 +64,6 @@ public:
 	Block(Block* block);
 	~Block();
 	void* pixels = nullptr;
-	bool affectedByGravity = true;
-	bool isAtBoundary = false;
 	SDL_Color color = {};
 	SDL_Surface* blockSurface = nullptr;
 	SDL_Surface* glyph = nullptr;
@@ -79,9 +84,13 @@ public:
 	int GetCharacterWidth() const;
 	int GetBlockRenderWidth() const;
 	std::shared_ptr<Block> GetLeftBlock();
+	std::shared_ptr<Block> GetRightBlock();
 	void SetRowNumber(int row);
-	int GetRowNumber();
+	int GetRowNumber() const;
 	bool IsAffectedByGravity() const;
+	void SetBoundaryFlag(bool value);
+	bool GetBoundaryFlag() const;
+	void TurnOnGravity();
 };
 
 

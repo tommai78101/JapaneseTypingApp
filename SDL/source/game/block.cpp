@@ -26,6 +26,14 @@ bool Object::IsHidden() const {
 	return this->isHidden;
 }
 
+bool Object::IsHit() const {
+	return this->isHit;
+}
+
+bool Object::IsMoving() const {
+	return this->isMoving;
+}
+
 void Object::SetVelocity(Vector2D velocity) {
 	this->oldVelocity = velocity;
 	this->currentVelocity = velocity;
@@ -48,6 +56,14 @@ void Object::SetActive(bool value) {
 
 void Object::SetHidden(bool value) {
 	this->isHidden = value;
+}
+
+void Object::SetHit(bool value) {
+	this->isHit = value;
+}
+
+void Object::SetMovingFlag(bool value) {
+	this->isMoving = value;
 }
 
 void Object::ApplyGravity() {
@@ -80,7 +96,6 @@ Block::Block(Game* game, TTF_Font* font, char* str) {
 	this->font = font;
 	this->ReplaceGlyph(str);
 	this->blockLength = strlen(str) / 3;
-	this->leftBlock = nullptr;
 
 	// Custom width calculations.
 	int paddingWidth = std::abs(this->BlockSize - this->characterWidth) / 2;
@@ -111,12 +126,12 @@ Block::Block(Block* block) {
 	this->blockSurface = SDLHelper_CreateSurface(block->BlockSize * block->blockLength, block->BlockSize, 32);
 	this->pixels = block->blockSurface->pixels;
 	this->blockTexture = SDL_CreateTextureFromSurface(block->gameRenderer, block->blockSurface);
-	this->isAtBoundary = block->isAtBoundary;
-	this->leftBlock = block->leftBlock;
+	this->SetHit(block->IsHit());
 	this->SetActive(block->IsActive());
 	this->SetPosition(block->GetPosition());
 	this->SetVelocity(block->GetVelocity());
 	this->SetRowNumber(block->GetRowNumber());
+	//this->SetBoundaryFlag(block->GetBoundaryFlag());
 
 	//By default, this block should be affected by gravity.
 	this->affectedByGravity = block->affectedByGravity;
@@ -154,12 +169,11 @@ uint32_t Block::GetPixel(int x, int y) {
 
 void Block::Update() {
 	//If it's inactive or if it's at the boundary, don't update.
-	if (!this->IsActive() || this->isAtBoundary) {
+	if (!this->IsActive() || this->IsHidden()) {
 		return;
 	}
 
 	//Calculate whether the block has reached the bottom of the screen, but above the input system.
-	SDL_Rect rect = this->game->GetInput()->GetPosition();
 	Vector2D position = this->currentPosition;
 
 	// This is for when blocks are coming down from the top.
@@ -174,23 +188,25 @@ void Block::Update() {
 	int boundaryX = Block::BlockSize / 2;
 	int count = 0;
 	std::shared_ptr<Block> nearest = this->GetLeftBlock();
-	while (nearest.get() != nullptr && nearest.get()->IsActive()) {
-		count += nearest.get()->GetBlockWidth();
-		nearest = nearest.get()->GetLeftBlock();
+	if (nearest.get() != nullptr) {
+		while (nearest.get() != nullptr) {
+			if (!nearest.get()->IsHit() && !nearest.get()->IsMoving()) {
+				count += nearest.get()->GetBlockWidth();
+			}
+			nearest = nearest.get()->GetLeftBlock();
+		}
 	}
-	if (position.x <= boundaryX + count) {
-		position.x = boundaryX + count;
+	float newBoundaryX = (float) boundaryX + count;
+	if (position.x < newBoundaryX) {
+		position.x = newBoundaryX;
 		this->SetPosition(position);
-		this->isAtBoundary = true;
+		this->SetBoundaryFlag(true);
+		this->SetMovingFlag(false);
 	}
 }
 
 void Block::FixedUpdate() {
-	//If it's inactive, don't update.
-	if (!this->IsActive())
-		return;
-
-	if (this->affectedByGravity && !this->isAtBoundary) {
+	if (this->affectedByGravity && !this->GetBoundaryFlag()) {
 		Object::ApplyGravity();
 	}
 	else {
@@ -228,7 +244,7 @@ void Block::Render() {
 	//Always reset the color after use.
 	SDL_SetRenderDrawColor(this->gameRenderer, 0, 0, 0, 255);
 
-	SDL_Rect destination = {r};
+	SDL_Rect destination = { r };
 	SDL_RenderCopy(this->gameRenderer, this->blockTexture, nullptr, &destination);
 }
 
@@ -272,34 +288,67 @@ int Block::GetBlockRenderWidth() const {
 }
 
 std::shared_ptr<Block> Block::GetLeftBlock() {
-	if (this->leftBlock == nullptr) {
-		int distance = this->GetPosition().x - Block::BlockSize;
-		std::vector<std::shared_ptr<Block>> blocksPool = this->game->GetBlocksPool();
-		for (size_t i = 0; i < blocksPool.size(); i++) {
-			std::shared_ptr<Block> block = blocksPool.at(i);
-			if (block->GetRowNumber() == this->GetRowNumber() && this != block.get()) {
-				int newDistance = this->GetPosition().x - block->GetPosition().x;
-				if (newDistance > 0 && newDistance < distance) {
-					distance = newDistance;
-					this->leftBlock = block.get();
-				}
+	int leftBlockIndex = -1;
+	int distance = this->game->GetWidth();
+	std::vector<std::shared_ptr<Block>> blocksPool = this->game->GetBlocksPool();
+	for (size_t i = 0; i < blocksPool.size(); i++) {
+		std::shared_ptr<Block> block = blocksPool.at(i);
+		if (block->GetRowNumber() == this->GetRowNumber() && this != block.get() && !block.get()->IsHit()) {
+			int newDistance = (int) (this->GetPosition().x - block->GetPosition().x);
+			if (newDistance > 0 && newDistance < distance) {
+				distance = newDistance;
+				leftBlockIndex = i;
 			}
 		}
 	}
-	if (this->leftBlock == nullptr) {
+	if (leftBlockIndex == -1) {
 		return nullptr;
 	}
-	return std::make_shared<Block>(this->leftBlock);
+	return blocksPool.at(leftBlockIndex);
+}
+
+std::shared_ptr<Block> Block::GetRightBlock() {
+	int rightBlockIndex = -1;
+	int distance = this->game->GetWidth();
+	std::vector<std::shared_ptr<Block>> blocksPool = this->game->GetBlocksPool();
+	for (size_t i = 0; i < blocksPool.size(); i++) {
+		std::shared_ptr<Block> block = blocksPool.at(i);
+		if (block->GetRowNumber() == this->GetRowNumber() && this != block.get() && !block.get()->IsHit()) {
+			int newDistance = (int) (block->GetPosition().x - this->GetPosition().x);
+			if (newDistance > 0 && newDistance < distance) {
+				distance = newDistance;
+				rightBlockIndex = i;
+			}
+		}
+	}
+	if (rightBlockIndex != -1) {
+		return blocksPool.at(rightBlockIndex);
+	}
+	return nullptr;
 }
 
 void Block::SetRowNumber(int row) {
 	this->rowNumber = row;
 }
 
-int Block::GetRowNumber() {
+int Block::GetRowNumber() const {
 	return this->rowNumber;
 }
 
 bool Block::IsAffectedByGravity() const {
 	return this->affectedByGravity;
+}
+
+void Block::SetBoundaryFlag(bool value) {
+	this->isAtBoundary = value;
+}
+
+bool Block::GetBoundaryFlag() const {
+	return this->isAtBoundary;
+}
+
+void Block::TurnOnGravity() {
+	this->affectedByGravity = true;
+	this->SetBoundaryFlag(false);
+	this->SetMovingFlag(true);
 }
