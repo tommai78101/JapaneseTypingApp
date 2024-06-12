@@ -65,6 +65,7 @@ protected:
 	//Others
 	Block* block = nullptr;
 	VocabularyTrie kanjiTrie;
+	std::vector<std::u32string> dictionary;
 	
 	//unistd.h specific variables
 	FILE* dictionaryFile = nullptr;

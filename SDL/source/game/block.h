@@ -46,8 +46,8 @@ class Block : public Object {
 protected:
 	int characterWidth = 0;
 	int characterHeight = 0;
-	SDL_Renderer* gameRenderer = nullptr;
-	char* glyphsValue = nullptr;
+	std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> gameRenderer{nullptr, SDL_DestroyRenderer};
+	char glyphsValue[8] = {};
 	Game* game = nullptr;
 	int blockLength = 0;
 	int totalWidth = 0;

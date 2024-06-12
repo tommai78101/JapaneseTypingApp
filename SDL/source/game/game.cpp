@@ -271,12 +271,14 @@ void Game::Initialize() {
 			ParseLine(formattedLine, vocabulary, pronunciation, definition);
 			size_t v = vocabulary.size() - 1;
 			size_t p = pronunciation.size() - 1;
+			int count = 0;
 			for (; v >= 0 && p >= 0 && v < vocabulary.size() && p < pronunciation.size(); v--, p--) {
 				while (!(vocabulary[v].find(pronunciation[p]))) {
 					v--;
 				}
 				if (vocabulary[v].size() == 1) {
 					this->kanjiTrie.Insert(vocabulary[v], pronunciation[p], definition);
+					this->dictionary.push_back(vocabulary[v]);
 					break;
 				}
 			}
@@ -337,15 +339,20 @@ void Game::Initialize() {
 	}
 
 	//Creating object pool of Blocks
+	int commonListSize = 10;
+	int dictionarySize = this->kanjiTrie.GetSize();
 	int listSize = Japanese::Hiragana::GetListSize();
-	int testPoolSize = 30;
+	int testPoolSize = 10;
 	int testRowsSize = 10;
 	int currentBlockWidth = 0;
 	const int outsideBoundary = this->GetWidth() + 10;
 	int rows = (this->GetHeight() - (Block::BlockSize / 2 + Block::BlockSize)) / Block::BlockSize;
 	for (int currentBlock = 0; currentBlock < testPoolSize; currentBlock++) {
-		int randomCharacterIndex = (std::rand() * std::rand()) % listSize;
-		char* str = const_cast<char*>(Japanese::Hiragana::List[randomCharacterIndex]);
+		int randomCharacterIndex = (std::rand() * std::rand()) % dictionarySize;
+		//char* str = const_cast<char*>(Japanese::Hiragana::List[randomCharacterIndex]);
+		std::string u8holder;
+		Convert_utf32_utf8(this->dictionary[randomCharacterIndex], u8holder);
+		char* str = const_cast<char*>(u8holder.c_str());
 		int rowIndex = std::rand() % rows;
 		std::shared_ptr<Block> blockPtr = std::make_shared<Block>(this, this->GetFont(), str);
 		blockPtr->SetPosition((float) (outsideBoundary + currentBlockWidth), (float) (rowIndex * Block::BlockSize));

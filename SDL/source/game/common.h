@@ -35,6 +35,7 @@
 #include <mutex>
 #include <memory>
 #include <set>
+#include <unordered_map>
 
 //SDL libraries
 #pragma warning(push, 0)
@@ -545,7 +546,8 @@ static const char* EDICT2PATH = "dict/edict2u";
 #endif
 
 //static const char* FONTPATH = "font/meiryo.ttc";
-static const char* FONTPATH = "font/JapanSan.ttf";
+//static const char* FONTPATH = "font/JapanSan.ttf";
+static const char* FONTPATH = "font/PretendardJP-Regular.ttf";
 static const char* DEBUG = "(debug) ";
 
 //Switch Joycon keys

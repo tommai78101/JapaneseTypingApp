@@ -92,7 +92,7 @@ void Object::ApplyGravity() {
 Block::Block(Game* game, TTF_Font* font, char* str) {
 	//Initialized by parameter arguments.
 	this->game = game;
-	this->gameRenderer = game->GetGameRenderer();
+	this->gameRenderer.reset(game->GetGameRenderer());
 	this->font = font;
 	this->ReplaceGlyph(str);
 	this->blockLength = strlen(str) / 3;
@@ -104,7 +104,7 @@ Block::Block(Game* game, TTF_Font* font, char* str) {
 	//Block class properties initialized using other methods.
 	this->blockSurface = SDLHelper_CreateSurface(this->BlockSize * this->blockLength, this->BlockSize, 32);
 	this->pixels = this->blockSurface->pixels;
-	this->blockTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->blockSurface);
+	this->blockTexture = SDL_CreateTextureFromSurface(this->gameRenderer.get(), this->blockSurface);
 
 	//By default, this block should be affected by gravity.
 	this->affectedByGravity = true;
@@ -113,7 +113,7 @@ Block::Block(Game* game, TTF_Font* font, char* str) {
 Block::Block(Block* block) {
 	//Initialized by parameter arguments.
 	this->game = block->game;
-	this->gameRenderer = block->game->GetGameRenderer();
+	this->gameRenderer.reset(block->game->GetGameRenderer());
 	this->font = block->font;
 	this->ReplaceGlyph(block->GetGlyphValue());
 	this->blockLength = strlen(block->GetGlyphValue()) / 3;
@@ -125,7 +125,7 @@ Block::Block(Block* block) {
 	//Block class properties initialized using other methods.
 	this->blockSurface = SDLHelper_CreateSurface(block->BlockSize * block->blockLength, block->BlockSize, 32);
 	this->pixels = block->blockSurface->pixels;
-	this->blockTexture = SDL_CreateTextureFromSurface(block->gameRenderer, block->blockSurface);
+	this->blockTexture = SDL_CreateTextureFromSurface(block->gameRenderer.get(), block->blockSurface);
 	this->SetHit(block->IsHit());
 	this->SetActive(block->IsActive());
 	this->SetPosition(block->GetPosition());
@@ -225,12 +225,12 @@ void Block::Render() {
 	int fullBlockSize = this->GetBlockWidth();
 
 	//First, we draw the font glyphs.
-	SDL_SetRenderDrawColor(this->gameRenderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(this->gameRenderer.get(), 0, 0, 0, 255);
 	SDL_Rect fontDestination = { ((int) this->currentPosition.x) + paddingWidth, ((int) this->currentPosition.y) + paddingHeight, fullBlockSize - paddingWidth * 2, this->characterHeight };
-	SDL_RenderCopy(this->gameRenderer, this->glyphTexture, nullptr, &fontDestination);
+	SDL_RenderCopy(this->gameRenderer.get(), this->glyphTexture, nullptr, &fontDestination);
 
 	//Second, we draw a rectangle (square), depending on the width of the character glyph.
-	SDL_SetRenderDrawColor(this->gameRenderer, 0, 0, 255, 255);
+	SDL_SetRenderDrawColor(this->gameRenderer.get(), 0, 0, 255, 255);
 
 	//Struct object initialization
 	SDL_Rect r = {
@@ -239,13 +239,13 @@ void Block::Render() {
 		fullBlockSize, //width
 		Block::BlockSize //height
 	};
-	SDL_RenderDrawRect(this->gameRenderer, &r);
+	SDL_RenderDrawRect(this->gameRenderer.get(), &r);
 
 	//Always reset the color after use.
-	SDL_SetRenderDrawColor(this->gameRenderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(this->gameRenderer.get(), 0, 0, 0, 255);
 
 	SDL_Rect destination = { r };
-	SDL_RenderCopy(this->gameRenderer, this->blockTexture, nullptr, &destination);
+	SDL_RenderCopy(this->gameRenderer.get(), this->blockTexture, nullptr, &destination);
 }
 
 void Block::ReplaceGlyph(char* str) {
@@ -257,10 +257,10 @@ void Block::ReplaceGlyph(char* str) {
 	}
 	TTF_SizeUTF8(this->font, str, &this->characterWidth, &this->characterHeight);
 	this->glyph = TTF_RenderUTF8_Solid(this->font, str, this->color);
-	this->glyphTexture = SDL_CreateTextureFromSurface(this->gameRenderer, this->glyph);
+	this->glyphTexture = SDL_CreateTextureFromSurface(this->gameRenderer.get(), this->glyph);
 
 	//Store the glyph value
-	this->glyphsValue = str;
+	strcpy_s(this->glyphsValue, 8, str);
 }
 
 void Block::ReplaceGlyph(const char* str) {
@@ -268,7 +268,7 @@ void Block::ReplaceGlyph(const char* str) {
 }
 
 char* Block::GetGlyphValue() const {
-	return this->glyphsValue;
+	return (char*) &this->glyphsValue[0];
 }
 
 int Block::GetBlockLength() const {
@@ -276,7 +276,12 @@ int Block::GetBlockLength() const {
 }
 
 int Block::GetBlockWidth() const {
-	return (strlen(this->GetGlyphValue()) / 3) * Block::BlockSize;
+	int length = strlen(this->GetGlyphValue());
+	int stride = 3;
+	if (length > 5) {
+		stride *= 2;
+	}
+	return (length / stride) * Block::BlockSize;
 }
 
 int Block::GetCharacterWidth() const {
