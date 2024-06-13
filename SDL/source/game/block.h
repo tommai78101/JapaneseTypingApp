@@ -71,13 +71,9 @@ public:
 	SDL_Texture* glyphTexture = nullptr;
 	TTF_Font* font = nullptr;
 
+	// Setters/Getters
 	void SetPixel(int x, int y, uint32_t color);
 	uint32_t GetPixel(int x, int y);
-	void Update();
-	void FixedUpdate();
-	void Render();
-	void ReplaceGlyph(char* str);
-	void ReplaceGlyph(const char* str);
 	char* GetGlyphValue() const;
 	int GetBlockLength() const;
 	int GetBlockWidth() const;
@@ -90,6 +86,13 @@ public:
 	bool IsAffectedByGravity() const;
 	void SetBoundaryFlag(bool value);
 	bool GetBoundaryFlag() const;
+
+	// Methods
+	void Update();
+	void FixedUpdate();
+	void Render();
+	void ReplaceGlyph(char* str);
+	void ReplaceGlyph(const char* str);
 	void TypedAway();
 	void TurnOnGravity();
 };

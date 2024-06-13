@@ -1055,7 +1055,7 @@ void Input::ClearTokens() {
 }
 
 void Input::Update() {
-	if (this->isDirty) {
+	if (this->isDirty || !this->tokenTexture || !this->glyphTexture) {
 		this->UpdateTokens();
 	}
 

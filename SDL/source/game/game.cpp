@@ -1,6 +1,6 @@
 ﻿#include "game.h"
 
-Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello world") : width(newWidth), height(newHeight) {
+Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello world") : width(newWidth), height(newHeight), maxRowSize((newWidth / Block::BlockSize) + 1) {
 	//Setting up random numbers.
 	srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -15,6 +15,9 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	this->currentTime = 0ULL;
 	this->lastTime = 0ULL;
 	this->hiraganaInputTokens = std::string();
+	this->katakanaInputTokens = std::string();
+	this->rows = (this->GetHeight() - (Block::BlockSize / 2 + Block::BlockSize)) / Block::BlockSize;
+
 	//this->glyphStorageMutex = std::mutex();
 	//this->tokenStorageMutex = std::mutex();
 
@@ -115,10 +118,6 @@ Game::~Game() {
 	TTF_CloseFont(this->defaultFont);
 
 	//Non-SDL objects
-	if (this->block) {
-		delete this->block;
-		this->block = nullptr;
-	}
 	if (this->inputSystem) {
 		delete this->inputSystem;
 		this->inputSystem = nullptr;
@@ -344,27 +343,14 @@ void Game::Initialize() {
 	}
 
 	//Creating object pool of Blocks
-	int commonListSize = 10;
 	int dictionarySize = this->kanjiTrie.GetSize();
-	int listSize = Japanese::Hiragana::GetListSize();
-	int testPoolSize = 10;
-	int testRowsSize = 10;
 	int currentBlockWidth = 0;
 	const int outsideBoundary = this->GetWidth() + 10;
-	int rows = (this->GetHeight() - (Block::BlockSize / 2 + Block::BlockSize)) / Block::BlockSize;
-	for (int currentBlock = 0; currentBlock < testPoolSize; currentBlock++) {
+	while (this->blocksPool.size() < this->blockPoolThreshold) {
 		int randomCharacterIndex = (std::rand() * std::rand()) % dictionarySize;
-		//char* str = const_cast<char*>(Japanese::Hiragana::List[randomCharacterIndex]);
-		std::string u8holder;
-		Convert_utf32_utf8(this->dictionary[randomCharacterIndex], u8holder);
-		char* str = const_cast<char*>(u8holder.c_str());
-		int rowIndex = std::rand() % rows;
-		std::shared_ptr<Block> blockPtr = std::make_shared<Block>(this, this->GetFont(), str);
-		blockPtr->SetPosition((float) (outsideBoundary + currentBlockWidth), (float) (rowIndex * Block::BlockSize));
-		blockPtr->SetActive(true);
-		blockPtr->SetRowNumber(rowIndex);
-		this->blocksPool.push_back(blockPtr);
-		currentBlockWidth += blockPtr->GetBlockWidth() + 10;
+		int rowIndex = std::rand() % this->rows;
+		this->AddBlock(randomCharacterIndex, outsideBoundary + currentBlockWidth, rowIndex);
+		currentBlockWidth = this->blocksPool.size() * Block::BlockSize + 10;
 	}
 }
 
@@ -393,8 +379,9 @@ void Game::GameLoop() {
 
 		//Obtain the delta time
 		Game::deltaTime = static_cast<float>((currentPerformanceCounter - lastPerformanceCounter) * 1000.0 / (double) SDL_GetPerformanceFrequency());
-		if (Game::deltaTime > minimumTargetTime)
+		if (Game::deltaTime > minimumTargetTime) {
 			Game::deltaTime = minimumTargetTime;
+		}
 
 		//uint64_t counterElapsed = static_cast<uint64_t>((currentPerformanceCounter - lastPerformanceCounter) * 1000.0);
 		//double millisecondsPerFrame = (1000.0 * (double) counterElapsed) / (double) performanceCounterFrequency;
@@ -436,10 +423,18 @@ void Game::Update() {
 	//this->block->Update(static_cast<int>(this->position.x), static_cast<int>(this->position.y));
 
 	//Update all the blocks in the blocks pool.
+	std::vector<std::shared_ptr<Block>> toRemove;
 	size_t size = this->blocksPool.size();
 	for (size_t i = 0; i < size; i++) {
 		std::shared_ptr<Block> block = this->blocksPool.at(i);
-		block->Update();
+		if (!block->IsHit()) {
+			block->Update();
+		}
+	}
+
+	std::unique_lock<std::mutex> lock(this->blocksPoolMutex);
+	for (size_t i = 0; i < toRemove.size(); i++) {
+		this->blocksPool.erase(std::find(this->blocksPool.begin(), this->blocksPool.end(), toRemove.at(i)));
 	}
 }
 
@@ -450,6 +445,14 @@ void Game::FixedUpdate() {
 		std::shared_ptr<Block> block = this->blocksPool.at(i);
 		block->FixedUpdate();
 	}
+
+	// Adding new blocks per fixed update.
+	if (this->blockDelayCountdown <= 0 && this->blocksPool.size() < this->blockPoolThreshold) {
+		int index = (std::rand() * std::rand()) % this->kanjiTrie.GetSize();
+		this->AddBlock(index, this->GetWidth() + 10, std::rand() % this->rows);
+		this->blockDelayCountdown = this->blockDelay;
+	}
+	this->blockDelayCountdown--;
 }
 
 void Game::Render() {
@@ -589,14 +592,36 @@ void Game::QuitGame() {
 	this->quitFlag = true;
 }
 
-void Game::Clear() {
+void Game::RenderClear() {
 	SDL_Renderer* renderer = this->GetGameRenderer();
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(renderer);
 	SDL_RenderPresent(renderer);
 }
 
+void Game::ClearTokens() {
+	this->hiraganaInputTokens.clear();
+	this->katakanaInputTokens.clear();
+}
+
+void Game::AddBlock(int randomIndex, int x, int rowNumber) {
+	std::string u8holder;
+	Convert_utf32_utf8(this->dictionary[randomIndex], u8holder);
+	char* str = const_cast<char*>(u8holder.c_str());
+	//char* str = const_cast<char*>(Japanese::Hiragana::List[randomCharacterIndex]);
+
+	std::shared_ptr<Block> blockPtr = std::make_shared<Block>(this, this->GetFont(), str);
+	blockPtr->SetPosition((float) x, (float) (rowNumber * Block::BlockSize));
+	blockPtr->SetActive(true);
+	blockPtr->SetRowNumber(rowNumber);
+	blockPtr->TurnOnGravity();
+
+	this->blocksPool.push_back(blockPtr);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 //Setters/Getters
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 SDL_Renderer* Game::GetGameRenderer() const {
 	return this->gameWindowRenderer;
@@ -726,6 +751,10 @@ void Game::ProcessGlyphs(char* hiraganaValue, char* katakanaValue) {
 	size_t size = this->blocksPool.size();
 	for (size_t i = 0; i < size; i++) {
 		std::shared_ptr<Block> block = this->blocksPool.at(i);
+		if (block->IsHit()) {
+			continue;
+		}
+
 		std::string pronunciation = this->kanjiTrie.GetPronunciation(block->GetGlyphValue());
 		if (maxSize < pronunciation.size()) {
 			maxSize = pronunciation.size();
@@ -734,15 +763,13 @@ void Game::ProcessGlyphs(char* hiraganaValue, char* katakanaValue) {
 		if (pronunciation.find(this->hiraganaInputTokens) != std::string::npos || pronunciation.find(this->katakanaInputTokens) != std::string::npos) {
 			if (pronunciation == this->hiraganaInputTokens || pronunciation == this->katakanaInputTokens) {
 				block->TypedAway();
-				this->hiraganaInputTokens.clear();
-				this->katakanaInputTokens.clear();
+				this->ClearTokens();
 				std::cout << "Block " << block->GetGlyphValue() << " is currently inactive." << std::endl;
 				break;
 			}
 		}
 		else if (this->hiraganaInputTokens.length() >= maxSize || this->katakanaInputTokens.length() >= maxSize) {
-			this->hiraganaInputTokens.clear();
-			this->katakanaInputTokens.clear();
+			this->ClearTokens();
 		}
 	}
 	int debug = 0;

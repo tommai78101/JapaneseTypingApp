@@ -11,8 +11,8 @@ private:
 	//Hidden game related data
 	SDL_GLContext glContext = nullptr;
 	std::thread renderingThread;
-	std::mutex glyphStorageMutex;
-	std::mutex tokenStorageMutex;
+	std::mutex glyphStorageMutex = std::mutex();
+	std::mutex blocksPoolMutex = std::mutex();
 	void ThreadTask();
 	uint64_t currentTime = 0ULL;
 	uint64_t lastTime = 0ULL;
@@ -37,6 +37,8 @@ protected:
 	size_t clearColor;
 	bool quitFlag = false;
 	std::wstring inputString;
+	int blockPoolThreshold = 5 * 20; // 5 rows * 20 blocks per row
+	int rows = 5;
 
 	//Game Surface properties
 	uint32_t* pixels = nullptr;
@@ -53,6 +55,7 @@ protected:
 	int fontWidth = 0;
 	int fontHeight = 0;
 	int lineSkip = 0;
+	int maxRowSize = 0;
 	TTF_Font* defaultFont = nullptr;
 	SDL_Texture* fontSurfaceSolid = nullptr;
 	SDL_Texture* fontSurfaceShaded = nullptr;
@@ -63,7 +66,6 @@ protected:
 	Input* inputSystem = nullptr;
 
 	//Others
-	Block* block = nullptr;
 	VocabularyTrie kanjiTrie;
 	std::vector<std::u32string> dictionary;
 	std::string hiraganaInputTokens;
@@ -74,6 +76,8 @@ protected:
 
 public:
 	static inline const float gravity = 9.86f;
+	static inline const int blockDelay = 60;
+	static inline int blockDelayCountdown = 100;
 	static inline float deltaTime;
 
 	Game(int newWidth, int newHeight, std::string title);
@@ -88,7 +92,9 @@ public:
 	void GameEventLoop();
 	void HandleInput();
 	void QuitGame();
-	void Clear();
+	void RenderClear();
+	void ClearTokens();
+	void AddBlock(int index, int x, int y);
 
 	virtual void Update();
 	virtual void FixedUpdate();

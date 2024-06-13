@@ -97,6 +97,10 @@ Block::Block(Game* game, TTF_Font* font, char* str) {
 	this->ReplaceGlyph(str);
 	this->blockLength = strlen(str) / 3;
 
+	// Other properties.
+	this->SetHit(false);
+	this->SetActive(true);
+
 	// Custom width calculations.
 	int paddingWidth = std::abs(this->BlockSize - this->characterWidth) / 2;
 	this->totalWidth = Block::BlockSize * this->blockLength + (this->blockLength > 1 ? -paddingWidth : 0);
@@ -150,6 +154,14 @@ Block::~Block() {
 		SDL_DestroyTexture(this->blockTexture);
 		this->blockTexture = nullptr;
 	}
+	if (this->glyphTexture) {
+		// This font deletion is handled by the Game class.
+		this->glyphTexture = nullptr;
+	}
+	if (this->font) {
+		// This font deletion is handled by the Game class.
+		this->font = nullptr;
+	}
 }
 
 void Block::SetPixel(int x, int y, uint32_t color) {
@@ -169,7 +181,7 @@ uint32_t Block::GetPixel(int x, int y) {
 
 void Block::Update() {
 	//If it's inactive or if it's at the boundary, don't update.
-	if (!this->IsActive() || this->IsHidden()) {
+	if (!this->IsActive() || this->IsHidden() || this->IsHit()) {
 		return;
 	}
 
@@ -294,7 +306,7 @@ int Block::GetBlockRenderWidth() const {
 
 std::shared_ptr<Block> Block::GetLeftBlock() {
 	int leftBlockIndex = -1;
-	int distance = this->game->GetWidth();
+	int distance = 0x7FFFFFFF;
 	std::vector<std::shared_ptr<Block>> blocksPool = this->game->GetBlocksPool();
 	for (size_t i = 0; i < blocksPool.size(); i++) {
 		std::shared_ptr<Block> block = blocksPool.at(i);
