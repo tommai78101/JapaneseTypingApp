@@ -47,11 +47,13 @@ protected:
 	int characterWidth = 0;
 	int characterHeight = 0;
 	std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> gameRenderer{nullptr, SDL_DestroyRenderer};
+	std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> pronunciationTexture{nullptr, SDL_DestroyTexture};
 	char glyphsValue[8] = {};
 	Game* game = nullptr;
 	int blockLength = 0;
 	int totalWidth = 0;
 	int rowNumber = -1;
+	std::string pronunciation;
 	volatile bool affectedByGravity = true;
 	volatile bool isAtBoundary = false;
 
@@ -86,6 +88,9 @@ public:
 	bool IsAffectedByGravity() const;
 	void SetBoundaryFlag(bool value);
 	bool GetBoundaryFlag() const;
+	void SetPronunciation(char* value);
+	std::string GetPronunciation() const;
+	SDL_Texture* GetPronunciationTexture();
 
 	// Methods
 	void Update();

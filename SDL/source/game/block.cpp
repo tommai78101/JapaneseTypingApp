@@ -381,3 +381,22 @@ void Block::TurnOnGravity() {
 	this->SetBoundaryFlag(false);
 	this->SetMovingFlag(true);
 }
+
+void Block::SetPronunciation(char* value) {
+	this->pronunciation.clear();
+	this->pronunciation = std::string(value);
+}
+
+std::string Block::GetPronunciation() const {
+	return this->pronunciation;
+}
+
+SDL_Texture* Block::GetPronunciationTexture() {
+	SDL_Texture* result = this->pronunciationTexture.get();
+	if (!result) {
+		std::unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)> surface{ TTF_RenderUTF8_Solid(this->game->GetFont(), this->pronunciation.c_str(), SDL_COLOR_DarkGreen), SDL_FreeSurface };
+		this->pronunciationTexture.reset(SDL_CreateTextureFromSurface(this->game->GetGameRenderer(), surface.get()));
+		result = this->pronunciationTexture.get();
+	}
+	return result;
+}

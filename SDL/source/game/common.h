@@ -36,6 +36,7 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
+#include <algorithm>
 
 //SDL libraries
 #pragma warning(push, 0)
@@ -538,6 +539,7 @@ struct VocabularyTrie {
 //Constants
 static const SDL_Color SDL_COLOR_Black = { };
 static const SDL_Color SDL_COLOR_Red = { 255, 0 };
+static const SDL_Color SDL_COLOR_DarkGreen = { 0, 44, 0 };
 
 #ifdef __SWITCH__
 static const char* EDICT2PATH = "romfs:/edict2u";
