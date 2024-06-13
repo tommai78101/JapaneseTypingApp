@@ -14,6 +14,7 @@ Game::Game(int newWidth = 400, int newHeight = 400, std::string title = "Hello w
 	this->clearColor = 0x0;
 	this->currentTime = 0ULL;
 	this->lastTime = 0ULL;
+	this->hiraganaInputTokens = std::string();
 	//this->glyphStorageMutex = std::mutex();
 	//this->tokenStorageMutex = std::mutex();
 
@@ -283,6 +284,10 @@ void Game::Initialize() {
 				}
 			}
 			buffer.clear();
+
+			if (this->inputSystem->GetMaxTokenSize() < pronunciation.size()) {
+				this->inputSystem->SetMaxTokenSize(pronunciation.size());
+			}
 		};
 	}
 
@@ -696,36 +701,49 @@ std::vector<std::shared_ptr<Block>> Game::GetBlocksPool() const {
 	return this->blocksPool;
 }
 
-void Game::StoreGlyphs(char* value) {
+void Game::StoreGlyphs(char* hiraganaValue, char* katakanaValue) {
 	try {
 		std::lock_guard<std::mutex> lockGuard(this->glyphStorageMutex);
-		this->GetInput()->UpdateGlyphs(value);
-		this->ProcessGlyphs(value);
+		this->GetInput()->UpdateGlyphs(hiraganaValue);
+		this->ProcessGlyphs(hiraganaValue, katakanaValue);
 	}
 	catch (std::exception e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 	}
 }
 
-void Game::ProcessGlyphs(char* value) {
+void Game::ProcessGlyphs(char* hiraganaValue, char* katakanaValue) {
+	// Storing the input values into their corresponding input types.
+	std::string hiraganaInput(hiraganaValue);
+	std::string katakanaInput(katakanaValue);
+	this->hiraganaInputTokens.append(hiraganaInput);
+	this->katakanaInputTokens.append(katakanaInput);
+
+	// Getting a reference to the maximum size allowed.
+	int maxSize = 0;
+
 	//Mostly pertaining to physics.
 	size_t size = this->blocksPool.size();
 	for (size_t i = 0; i < size; i++) {
 		std::shared_ptr<Block> block = this->blocksPool.at(i);
-		std::string blockGlyphs(block->GetGlyphValue());
-		std::string valueGlyphs(value);
-		if (blockGlyphs == valueGlyphs) {
-			std::shared_ptr<Block> rightBlock = block->GetRightBlock();
-			while (rightBlock != nullptr) {
-				if (!rightBlock.get()->IsHit()) {
-					rightBlock.get()->TurnOnGravity();
-				}
-				rightBlock = rightBlock->GetRightBlock();
+		std::string pronunciation = this->kanjiTrie.GetPronunciation(block->GetGlyphValue());
+		if (maxSize < pronunciation.size()) {
+			maxSize = pronunciation.size();
+		}
+
+		if (pronunciation.find(this->hiraganaInputTokens) != std::string::npos || pronunciation.find(this->katakanaInputTokens) != std::string::npos) {
+			if (pronunciation == this->hiraganaInputTokens || pronunciation == this->katakanaInputTokens) {
+				block->TypedAway();
+				this->hiraganaInputTokens.clear();
+				this->katakanaInputTokens.clear();
+				std::cout << "Block " << block->GetGlyphValue() << " is currently inactive." << std::endl;
+				break;
 			}
-			block->SetHidden(true);
-			block->SetHit(true);
-			std::cout << "Block " << block->GetGlyphValue() << " is currently inactive." << std::endl;
-			break;
+		}
+		else if (this->hiraganaInputTokens.length() >= maxSize || this->katakanaInputTokens.length() >= maxSize) {
+			this->hiraganaInputTokens.clear();
+			this->katakanaInputTokens.clear();
 		}
 	}
+	int debug = 0;
 }

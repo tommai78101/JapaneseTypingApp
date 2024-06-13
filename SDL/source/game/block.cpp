@@ -352,6 +352,18 @@ bool Block::GetBoundaryFlag() const {
 	return this->isAtBoundary;
 }
 
+void Block::TypedAway() {
+	std::shared_ptr<Block> rightBlock = this->GetRightBlock();
+	while (rightBlock != nullptr) {
+		if (!rightBlock.get()->IsHit()) {
+			rightBlock.get()->TurnOnGravity();
+		}
+		rightBlock = rightBlock->GetRightBlock();
+	}
+	this->SetHidden(true);
+	this->SetHit(true);
+}
+
 void Block::TurnOnGravity() {
 	this->affectedByGravity = true;
 	this->SetBoundaryFlag(false);

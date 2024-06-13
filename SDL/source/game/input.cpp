@@ -955,6 +955,7 @@ void InputTask() {
 Input::Input(Game* game) : glyphsDestination({}), tokensDestination({})
 {
 	//Initializes the token reader.
+	//this->tokens.reserve(Input::MaxTokenSize);
 	this->tokens.reserve(Input::MaxTokenSize);
 
 	//Initializes the glyph map.
@@ -997,9 +998,9 @@ bool Input::HandleValidInputs(SDL_Keycode inputCode) {
 	}
 	assert(inputCode >= SDLK_a);
 	assert(inputCode <= SDLK_z);
-	if (this->tokens.size() < Input::MaxTokenSize) {
+	if (this->tokens.size() < this->flexibleMaxTokenSize * 3) {
 		this->tokens.push_back(inputCode);
-		if (this->tokens.size() >= Input::MaxTokenSize) {
+		if (this->tokens.size() >= this->flexibleMaxTokenSize * 3) {
 			std::cout << "Too many tokens, auto-confirming!" << std::endl;
 			this->ConfirmToken();
 		}
@@ -1010,28 +1011,40 @@ bool Input::HandleValidInputs(SDL_Keycode inputCode) {
 
 void Input::ConfirmToken() {
 	//This is fired when the user presses the Enter key to confirm the entered inputs.
-	KeyCodeTrie* glyphTrie = this->isHiraganaInput ? &(this->hiraganaTrie) : &(this->katakanaTrie);
-	char* value = glyphTrie->Get(this->tokens);
-	if (value) {
+	KeyCodeTrie* hiraganaGlyphTrie = &(this->hiraganaTrie);
+	KeyCodeTrie* katakanaGlyphTrie = &(this->katakanaTrie);
+	char* hiraganaValue = hiraganaGlyphTrie->Get(this->tokens);
+	char* katakanaValue = katakanaGlyphTrie->Get(this->tokens);
+	if (hiraganaValue) {
 		//Needs multithreading threads to store the glyphs here, otherwise, it would be deadlocked.
-		std::thread thread = std::thread(&Input::InputTask, this, value);
-		thread.detach();
+		//std::thread thread = std::thread(&Input::InputTask, this, value);
+		//thread.detach();
 
 		//this->game->GetBlock()->ReplaceGlyph(value);
 		//this->game->StoreGlyphs(value);
 		//this->UpdateGlyphs(value);
 		//this->tokens.clear();
 	}
-	else if (this->tokens.size() >= Input::MaxTokenSize) {
+	
+	if (this->tokens.size() >= Input::MaxTokenSize) {
 		this->tokens.clear();
 		std::cout << "Not found! Max tokens used." << std::endl;
 	}
 	else {
-		KeyCodeTrieNode* node = glyphTrie->GetNode(this->tokens);
-		if ((!node) || (node && node->IsLeaf())) {
-			this->tokens.clear();
-			std::cout << "Not found! Incorrect input." << std::endl;
-			this->isIncorrect = true;
+		KeyCodeTrieNode* hiraganaNode = hiraganaGlyphTrie->GetNode(this->tokens);
+		KeyCodeTrieNode* katakanaNode = katakanaGlyphTrie->GetNode(this->tokens);
+		if (!hiraganaNode || !katakanaNode) {
+
+		}
+		if ((hiraganaNode && hiraganaNode->IsLeaf()) || (katakanaNode && katakanaNode->IsLeaf())) {
+			//Needs multithreading threads to store the glyphs here, otherwise, it would be deadlocked.
+			std::thread thread = std::thread(&Input::InputTask, this, hiraganaValue, katakanaValue);
+			thread.detach();
+		}
+		if ((!hiraganaNode) || (hiraganaNode && hiraganaNode->IsLeaf())) {
+			//this->tokens.clear();
+			//std::cout << "Not found! Incorrect input." << std::endl;
+			//this->isIncorrect = true;
 		}
 	}
 	this->isDirty = true;
@@ -1125,12 +1138,20 @@ SDL_Rect Input::GetPosition() const {
 	return this->inputboxPosition;
 }
 
+void Input::SetMaxTokenSize(int length) {
+	this->flexibleMaxTokenSize = length;
+}
+
+int Input::GetMaxTokenSize() const {
+	return this->flexibleMaxTokenSize;
+}
+
 //End Public functions
 
 //Start Private Functions
 
-void Input::InputTask(char* value) {
-	this->game->StoreGlyphs(value);
+void Input::InputTask(char* hiraganaValue, char* katakanaValue) {
+	this->game->StoreGlyphs(hiraganaValue, katakanaValue);
 	this->tokens.clear();
 }
 

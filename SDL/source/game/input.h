@@ -15,7 +15,7 @@ class Game;
 class Input {
 private:
 	//Thread related functions
-	void InputTask(char* value);
+	void InputTask(char* hiragana, char* katakana);
 
 protected:
 	std::set<std::string> hiragana;
@@ -32,6 +32,7 @@ protected:
 	//Inputbox properties
 	int boxWidth;
 	int boxHeight;
+	int flexibleMaxTokenSize = Input::MaxTokenSize;
 	SDL_Rect inputboxPosition;
 	SDL_Rect tokensDestination;
 	SDL_Rect glyphsDestination;
@@ -61,6 +62,8 @@ public:
 	bool CheckInputType() const;
 	std::set<std::string> GetCharacterGlyphs(bool isHiragana);
 	SDL_Rect GetPosition() const;
+	void SetMaxTokenSize(int length);
+	int GetMaxTokenSize() const;
 
 	std::vector<SDL_Keycode>* GetTokens();
 };

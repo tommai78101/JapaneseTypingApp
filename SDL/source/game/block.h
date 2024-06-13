@@ -90,6 +90,7 @@ public:
 	bool IsAffectedByGravity() const;
 	void SetBoundaryFlag(bool value);
 	bool GetBoundaryFlag() const;
+	void TypedAway();
 	void TurnOnGravity();
 };
 

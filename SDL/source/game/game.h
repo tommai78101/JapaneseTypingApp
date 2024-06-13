@@ -66,6 +66,8 @@ protected:
 	Block* block = nullptr;
 	VocabularyTrie kanjiTrie;
 	std::vector<std::u32string> dictionary;
+	std::string hiraganaInputTokens;
+	std::string katakanaInputTokens;
 	
 	//unistd.h specific variables
 	FILE* dictionaryFile = nullptr;
@@ -94,8 +96,8 @@ public:
 	void DrawPixel(uint32_t x, uint32_t y, uint32_t width, uint32_t color);
 
 	//Game related functions
-	void StoreGlyphs(char* value);
-	void ProcessGlyphs(char* value);
+	void StoreGlyphs(char* hiragana, char* katakana);
+	void ProcessGlyphs(char* hiragana, char* katakana);
 
 	//Getter/Setters
 	size_t GetWidth() const;
